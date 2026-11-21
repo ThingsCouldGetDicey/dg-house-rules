@@ -1,0 +1,10 @@
+{
+  "id": "dg-house-rules",
+  "title": "Delta Green — House Rules",
+  "description": "Modular Delta Green v14 house rules; initial feature hides NPC and Unnatural roll targets in player chat cards.",
+  "version": "0.1.0",
+  "authors": [{"name": "Private Campaign"}],
+  "compatibility": {"minimum": "14", "verified": "14"},
+  "relationships": {"systems": [{"id": "deltagreen", "type": "system", "compatibility": {"minimum": "2.0.0"}}]},
+  "esmodules": ["scripts/main.js"]
+}
