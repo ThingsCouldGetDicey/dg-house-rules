@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>DG House Rules browser test</title></head>
+<body data-result="PENDING">
+<div id="results"></div>
+<script type="module">
+const registeredSettings=new Map();
+const callbacks=new Map();
+globalThis.Hooks={
+  once(name,cb){callbacks.set(name,cb);},
+  on(name,cb){callbacks.set(name,cb);}
+};
+globalThis.game={
+  system:{id:"deltagreen"},
+  user:{isGM:false},
+  settings:{
+    register(mod,key,config){registeredSettings.set(key,config);},
+    get(mod,key){return registeredSettings.get(key).currentValue ?? registeredSettings.get(key).default;}
+  },
+  actors:{get(id){return actors[id]??null;}}
+};
+const actors={
+  u:{id:"u",type:"unnatural"},
+  n:{id:"n",type:"npc"},
+  a:{id:"a",type:"agent"}
+};
+globalThis.ChatMessage={getSpeakerActor(speaker){return actors[speaker.actor]??null;}};
+await import("../scripts/main.js");
+callbacks.get("init")();
+function rollCard(actorId) {
+  const fragment=document.createElement("section");
+  fragment.innerHTML='<section class="dg-chat-card">'
+  +'<div class="dg-chat-card__roll-label"><b>Firearms</b>: '
+  +'<span class="dg-chat-card__target-info" data-tooltip-html="&lt;table&gt;60% +20%&lt;/table&gt;">80%▲</span></div>'
+  +'<div class="dice-roll"><h4 class="dice-total">42</h4><div class="dice-formula">SUCCESS</div></div>'
+  +'</section>';
+  const message={
+    speaker:{actor:actorId},
+    flags:{deltagreen:{chatCard:true}},
+    rolls:[{constructor:{name:"DGPercentileRoll"},options:{rollType:"skill"}}]
+  };
+  callbacks.get("renderChatMessageHTML")(message,fragment);
+  return fragment;
+}
+const assert=(condition,reason)=>{if(!condition)throw Error(reason);};
+try {
+  assert(registeredSettings.get("hideUnnatural").default===true,"Unnatural setting");
+  assert(registeredSettings.get("hideNpc").default===false,"NPC setting");
+  const unnatural=rollCard("u");
+  assert(unnatural.textContent.includes("Firearms: Target hidden"),"unnatural hidden");
+  assert(!unnatural.innerHTML.includes("80%"),"target removed");
+  assert(!unnatural.innerHTML.includes("60%"),"tooltip target removed");
+  assert(unnatural.textContent.includes("SUCCESS"),"success preserved");
+  assert(unnatural.textContent.includes("42"),"dice result preserved");
+  const npc=rollCard("n");
+  assert(npc.textContent.includes("80%"),"NPC unchanged by default");
+  registeredSettings.get("hideNpc").currentValue=true;
+  const npc2=rollCard("n");
+  assert(npc2.textContent.includes("Target hidden"),"NPC toggle works");
+  const agent=rollCard("a");
+  assert(agent.textContent.includes("80%"),"Agent unchanged");
+  game.user.isGM=true;
+  const gm=rollCard("u");
+  assert(gm.textContent.includes("80%"),"GM retains target");
+  document.body.dataset.result="PASS";
+  document.querySelector("#results").textContent="PASS: Unnatural/NPC settings, player/GM display, target tooltip, dice and outcome";
+} catch(e){
+  document.body.dataset.result="FAIL";
+  document.querySelector("#results").textContent="FAIL: "+e.message;
+}
+</script>
+</body></html>
