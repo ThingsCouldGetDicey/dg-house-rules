@@ -24,11 +24,17 @@ const server=http.createServer((req,res)=>{
   await page.waitForFunction(()=>window.__done===true,{timeout:7000});
   assert.deepEqual(errors,[]);
   const result=await page.evaluate(()=>({fields:window.__formValues(),log:window.__log,sectionCount:document.querySelectorAll('[data-dg-house-rules-darkness]').length,src:window.__scene.playlist}));
-  assert.deepEqual(result.log,['stop:daydaydaydayday1','play:nightnightnight1','stop:nightnightnight1','play:daydaydaydayday1']);
+  assert.deepEqual(result.log,[
+    'stop:daydaydaydayday1','play:nightnightnight1',
+    'stop:nightnightnight1','play:daydaydaydayday1',
+    'stop:daydaydaydayday1','next:mysteryshuffle01',
+    'stop:mysteryshuffle01','sound:soundboardnight1:onetrackbell0001',
+    'stop:soundboardnight1','play:daydaydaydayday1'
+  ]);
   assert.equal(result.sectionCount,1);
-  const output=path.join(root,'dist','scene-darkness-settings-preview.png');fs.mkdirSync(path.dirname(output),{recursive:true});
+  const output=path.join(root,'dist','scene-darkness-settings-search-preview.png');fs.mkdirSync(path.dirname(output),{recursive:true});
   await page.screenshot({path:output});
-  console.log('CHROMIUM SCENE CONFIG PASS: persisted form field names, one expandable panel, existing Foundry render hooks, lighting update to night and back, one GM, original linked playlist preserved.');
+  console.log('CHROMIUM SCENE CONFIG PASS: searchable all-mode dropdown; saved selection; soundboard track picker; sequential/shuffle-safe playback; night/day hooks; original Scene Playlist preserved.');
   console.log('Screenshot: '+output);
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1});

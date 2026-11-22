@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 — Search all playlists and play every native mode correctly
+
+- Search by playlist name or playback mode within the Scene darkness selector.
+- List all playlists, rather than only Simultaneous ones.
+- Use native Foundry v14 playNext for Sequential and Shuffle, playAll only for
+  Simultaneous, and an explicitly selected playSound for Soundboards.
+- Preserve the current selection while filtering or clearing search.
+- Only reveal the Soundboard track picker for Soundboard playlists, including
+  with CSS themes that override native hidden styles.
+- Cover each playback mode, search filtering, form submission, and mode
+  switching in automated unit and Chromium integration tests.
+
 ## 0.2.0 — Scene darkness playlist switching
 
 - Add an optional expandable Scene Config section for Nighttime playlist and

@@ -5,6 +5,15 @@
 export const MODULE_ID = "dg-house-rules";
 export const NIGHT_FLAG = "darknessPlaylist";
 export const THRESHOLD_FLAG = "darknessThreshold";
+export const NIGHT_SOUND_FLAG = "darknessPlaylistSound";
+export const PLAYLIST_MODES = Object.freeze({[-1]:"Soundboard",[0]:"Sequential",[1]:"Shuffle",[2]:"Simultaneous"});
+
+export function playlistModeLabel(mode) {return PLAYLIST_MODES[mode] ?? "Unknown";}
+
+export function playlistSounds(playlist) {
+  const collection = playlist?.sounds;
+  return collection?.contents ?? (collection ? Array.from(collection) : []);
+}
 export const DEFAULT_THRESHOLD = 0.5;
 
 function flag(scene, key) {
@@ -14,9 +23,11 @@ function flag(scene, key) {
 export function nightSettings(scene) {
   const id = flag(scene, NIGHT_FLAG);
   const raw = flag(scene, THRESHOLD_FLAG);
+  const soundId = flag(scene, NIGHT_SOUND_FLAG);
   const number = raw === undefined || raw === null || raw === "" ? DEFAULT_THRESHOLD : Number(raw);
   return {
     nightPlaylistId: typeof id === "string" && /^[a-zA-Z0-9]{16}$/.test(id) ? id : "",
+    nightSoundId: typeof soundId === "string" && /^[a-zA-Z0-9]{16}$/.test(soundId) ? soundId : "",
     threshold: Number.isFinite(number) && number >= 0 && number <= 1 ? number : DEFAULT_THRESHOLD
   };
 }
@@ -38,22 +49,41 @@ export function sceneUpdateAffectsAudio(changes) {
     Object.hasOwn(changes.environment ?? {}, "darknessLevel") ||
     Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, NIGHT_FLAG) ||
     Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, THRESHOLD_FLAG) ||
+    Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, NIGHT_SOUND_FLAG) ||
     Object.hasOwn(changes, "flags." + MODULE_ID + "." + NIGHT_FLAG) ||
+    Object.hasOwn(changes, "flags." + MODULE_ID + "." + NIGHT_SOUND_FLAG) ||
     Object.hasOwn(changes, "flags." + MODULE_ID + "." + THRESHOLD_FLAG);
 }
 
 export function playlistDecision(scene, game) {
-  const {nightPlaylistId, threshold} = nightSettings(scene);
+  const {nightPlaylistId, nightSoundId, threshold} = nightSettings(scene);
   if (!nightPlaylistId) return null; // opt-in: no effect on ordinary Scenes
   const night = game.playlists?.get?.(nightPlaylistId);
   const day = scene.playlist ? game.playlists?.get?.(scene.playlist) : null;
   if (!night || (scene.playlist && !day)) return null; // stale/deleted reference
   if (night.id === day?.id) return null;
-  // Scene soundscapes are simultaneous-mode playlists; don't accidentally
-  // play every track of a sequential or soundboard playlist at once.
-  if (night.mode !== 2 || (day && day.mode !== 2)) return null;
+  // All native Foundry playlist modes are selectable. Soundboard is different:
+  // it cannot auto-play as a playlist; the GM must choose an individual sound.
+  if (!Object.hasOwn(PLAYLIST_MODES, night.mode)) return null;
+  const sound = night.mode === -1
+    ? playlistSounds(night).find(s => s.id === nightSoundId)
+    : null;
+  if (night.mode === -1 && !sound) return null;
   const level = Number(scene.environment?.darknessLevel ?? 0);
-  return {night, day, isNight: Number.isFinite(level) && level >= threshold};
+  return {night, day, sound, isNight: Number.isFinite(level) && level >= threshold};
+}
+
+/** Use Foundry's mode-specific APIs; playAll must NEVER start a shuffled,
+ * sequential or soundboard playlist, because playAll is simultaneous. */
+export async function startPlaylist(playlist, sound = null) {
+  if (!playlist) return;
+  switch (playlist.mode) {
+    case 2: return playlist.playAll();
+    case 0:
+    case 1: return playlist.playNext();
+    case -1: return sound ? playlist.playSound(sound) : undefined;
+    default: return undefined;
+  }
 }
 
 export class DarknessPlaylistController {
@@ -95,22 +125,22 @@ export class DarknessPlaylistController {
       }
       return;
     }
-    const {night, day, isNight} = decision;
+    const {night, day, sound, isNight} = decision;
     if (isNight) {
-      if (prior && (prior.sceneId !== scene.id || prior.playlistId !== night.id)) {
+      if (prior && (prior.sceneId !== scene.id || prior.playlistId !== night.id || prior.soundId !== sound?.id)) {
         const old = game.playlists?.get?.(prior.playlistId);
         this.activeNight = null;
         if (old?.playing) await old.stopAll();
       }
       if (day?.playing) await day.stopAll();
-      if (!night.playing) await night.playAll();
-      this.activeNight = {sceneId: scene.id, playlistId: night.id};
+      if (!night.playing) await startPlaylist(night, sound);
+      this.activeNight = {sceneId: scene.id, playlistId: night.id, soundId: sound?.id};
     } else {
       // Handle both normal night->day and a GM reload during daylight when
       // the sound was already playing before this client opened.
       if (night.playing) await night.stopAll();
       this.activeNight = null;
-      if (day && !day.playing) await day.playAll();
+      if (day && !day.playing) await startPlaylist(day);
     }
   }
 }
@@ -130,29 +160,84 @@ export function addDarknessPlaylistFields(app, element, game) {
   const settings = nightSettings(scene);
   section.open = Boolean(settings.nightPlaylistId);
   section.append(create("summary", {textContent:"Darkness Playlist (optional)"}));
-  const intro = create("p", {textContent:"Keep the regular Scene Playlist as daytime audio. Choose a simultaneous-mode playlist to switch to automatically when Scene darkness reaches the threshold."});
+  const intro = create("p", {textContent:
+    "The normal Scene Playlist is daytime audio. Search all playlists below, including Sequential, Shuffle and Soundboard. Soundboards require you to select a track."});
   intro.className = "hint";
   section.append(intro);
+  const choices = [...(game.playlists?.contents ?? [])]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const searchLabel = create("label", {textContent:"Search playlists"});
+  const search = create("input", {type:"search", placeholder:"Search all playlists…"});
+  search.setAttribute("aria-label", "Search nighttime playlists");
+  search.autocomplete = "off";
+  searchLabel.append(search);
   const label = create("label", {textContent:"Nighttime playlist"});
   const select = create("select", {name:"flags." + MODULE_ID + "." + NIGHT_FLAG});
   select.setAttribute("aria-label", "Nighttime playlist");
-  select.append(create("option", {value:"", textContent:"Disabled — keep normal Scene Playlist"}));
-  const choices = [...(game.playlists?.contents ?? [])].filter(p => p.mode === 2)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const empty = create("option", {value:"", textContent:"Disabled — keep normal Scene Playlist"});
+  const originals = [empty];
   for (const playlist of choices) {
-    const option = create("option", {value:playlist.id, textContent:playlist.name});
-    option.selected = playlist.id === settings.nightPlaylistId;
-    select.append(option);
+    originals.push(create("option", {value:playlist.id,
+      textContent:playlist.name + " (" + playlistModeLabel(playlist.mode) + ")"}));
   }
-  // Keep missing selections visible instead of silently changing the saved value.
+  // Retain an unavailable saved ID explicitly; never silently lose it.
   if (settings.nightPlaylistId && !choices.some(p => p.id === settings.nightPlaylistId)) {
-    const missing = create("option", {value:settings.nightPlaylistId,
-      textContent:"Missing or incompatible playlist (select a new one)"});
-    missing.selected = true;
-    select.append(missing);
+    originals.push(create("option", {value:settings.nightPlaylistId,
+      textContent:"Missing playlist — select another"}));
   }
+  select.append(...originals);
+  select.value = settings.nightPlaylistId;
+  const count = create("p");
+  count.className = "hint";
+  count.setAttribute("role", "status");
+  const filter = () => {
+    const value = select.value;
+    const query = search.value.trim().toLocaleLowerCase();
+    const matches = originals.filter(o => !query || o.value === value ||
+      o.textContent.toLocaleLowerCase().includes(query));
+    select.replaceChildren(...matches);
+    // A search never resets the saved selection.
+    select.value = value;
+    const actualMatches = originals.filter(o => o.value && (!query ||
+      o.textContent.toLocaleLowerCase().includes(query))).length;
+    count.textContent = actualMatches + " of " + choices.length + " playlists match";
+  };
+  search.addEventListener("input", filter);
   label.append(select);
-  section.append(label);
+  section.append(searchLabel, label, count);
+
+  // For soundboards (-1), selecting a specific track is mandatory. Nothing
+  // is auto-picked: that could trigger an unintended sting or loud effect.
+  const trackLabel = create("label", {textContent:"Soundboard track to play at night"});
+  const trackSelect = create("select", {name:"flags." + MODULE_ID + "." + NIGHT_SOUND_FLAG});
+  trackSelect.setAttribute("aria-label", "Nighttime soundboard track");
+  trackLabel.append(trackSelect);
+  const trackHint = create("p", {textContent:
+    "Soundboards cannot play automatically as a whole. Choose the specific track to trigger, or use a different playlist."});
+  trackHint.className = "hint";
+  const updateTracks = () => {
+    const current = choices.find(p => p.id === select.value);
+    const showTrack = current?.mode === -1;
+    trackLabel.hidden = trackHint.hidden = !showTrack;
+    // Some Foundry themes set label {display:block}, which overrides the
+    // browser's native [hidden] stylesheet. Hide explicitly as well.
+    trackLabel.style.display = trackHint.style.display = showTrack ? "" : "none";
+    const retained = current?.id === settings.nightPlaylistId ? settings.nightSoundId : "";
+    trackSelect.replaceChildren(create("option", {value:"", textContent:"Choose a soundboard track…"}));
+    if (current?.mode !== -1) return;
+    const sounds = [...playlistSounds(current)].sort((a, b) => a.name.localeCompare(b.name));
+    for (const sound of sounds) {
+      trackSelect.append(create("option", {value:sound.id, textContent:sound.name}));
+    }
+    if (retained && !sounds.some(s => s.id === retained)) {
+      trackSelect.append(create("option", {value:retained, textContent:"Missing track — select another"}));
+    }
+    trackSelect.value = retained;
+  };
+  select.addEventListener("change", updateTracks);
+  updateTracks();
+  filter();
+  section.append(trackLabel, trackHint);
   const thresholdLabel = create("label", {textContent:"Switch at darkness level (0=day, 1=night)"});
   const threshold = create("input", {type:"number", min:"0", max:"1", step:"0.05",
     value:String(settings.threshold), name:"flags." + MODULE_ID + "." + THRESHOLD_FLAG});

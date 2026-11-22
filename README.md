@@ -43,7 +43,7 @@ true secret rolls, use Foundry's private/blind roll modes instead.
 A live two-client Foundry GM/player session comparison has not yet been
 completed. This is an initial experimental release.
 
-## Scene darkness playlist switching (v0.2.0)
+## Scene darkness playlist switching (v0.3.0)
 
 In **Scene Configuration**, next to the native **Scene Playlist**, expand
 **Darkness Playlist (optional)**. Choose a **Nighttime playlist** and a
@@ -55,17 +55,25 @@ preserve all existing Scene behaviour.
 
 To use it:
 
-1. Prepare a **simultaneous** (mode 2) Playlist for night ambience in the
-   native Playlists directory (do not select a soundboard or sequential list).
+1. Prepare any native Playlist: Simultaneous, Sequential, Shuffle, or Soundboard.
+   Soundboards additionally require selecting one specific track to play.
 2. Set the normal Scene Playlist to the day ambience you already use.
-3. Expand the Darkness Playlist section and choose your nighttime Playlist.
+3. Expand the Darkness Playlist section. Type in **Search playlists** to
+   filter by name or playback mode, then choose a playlist from the dropdown.
+   The search never clears the already selected playlist. If you choose a
+   Soundboard, an additional field asks which sound to play.
 4. Save Scene configuration, then use the normal Foundry v14 Scene Lighting
    controls / **Transition to Darkness**. At the threshold, the primary
-   active GM stops the day playlist and starts the night playlist. Returning
+   active GM stops the day playlist and starts the night playlist according
+   to its playback mode (one track for sequential/shuffle, all tracks for
+   simultaneous, the explicitly selected track for soundboards). Returning
    to daylight reverses the switch. This also responds to other modules which
    update the **Scene environment.darknessLevel** field.
 
 No separate night image, duplicate Scene or extra audio module is required.
+Soundboard tracks are never chosen automatically: until you select a sound,
+that Scene has no darkness audio action. A Soundboard selected as the normal
+Scene Playlist remains manual when the Scene returns to daylight.
 The feature does not touch other Playlists or Scenes; an unconfigured Scene has
 no playback automation. Night audio is stopped when the Scene deactivates.
 Only one authoritative GM client issues playback calls. The module does **not**

@@ -1,13 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  NIGHT_FLAG, THRESHOLD_FLAG, nightSettings, playlistDecision,
+  NIGHT_FLAG, NIGHT_SOUND_FLAG, THRESHOLD_FLAG, playlistModeLabel, nightSettings, playlistDecision,
   sceneUpdateAffectsAudio, isPrimaryGM, DarknessPlaylistController
 } from '../scripts/features/darkness-playlist.js';
 
 const mkList = (id, log, mode=2) => ({
   id, name:id, mode, playing:false,
   async playAll(){this.playing=true;log.push('play:'+id)},
+  async playNext(){this.playing=true;log.push('next:'+id)},
+  async playSound(sound){this.playing=true;log.push('sound:'+id+':'+sound.id)},
   async stopAll(){this.playing=false;log.push('stop:'+id)}
 });
 function fixture() {
@@ -28,7 +30,7 @@ function fixture() {
 test('opt-in threshold has no global or generic Scene side effects',async()=>{
   const f=fixture(); f.scene.flags['dg-house-rules']={};
   assert.equal(playlistDecision(f.scene,f.game),null);
-  assert.deepEqual(nightSettings(f.scene),{nightPlaylistId:'',threshold:0.5});
+  assert.deepEqual(nightSettings(f.scene),{nightPlaylistId:'',nightSoundId:'',threshold:0.5});
   await f.controller.enqueue(f.scene);assert.deepEqual(f.log,[]);
 });
 
@@ -75,12 +77,11 @@ test('unrelated clients and non-authoritative GMs never change audio',async()=>{
   }
 });
 
-test('missing playlist, same playlist, non-simultaneous lists: refuse safely',async()=>{
-  for(const kind of ['missing','same','nonSimultaneous']){
+test('missing playlist and same playlist: refuse safely',async()=>{
+  for(const kind of ['missing','same']){
     const f=fixture();f.scene.environment.darknessLevel=1;
     if(kind==='missing')f.scene.flags['dg-house-rules'].darknessPlaylist='NOTFOUNDNOTFOUND';
     if(kind==='same')f.scene.flags['dg-house-rules'].darknessPlaylist=f.day.id;
-    if(kind==='nonSimultaneous')f.night.mode=1;
     await f.controller.enqueue(f.scene);assert.deepEqual(f.log,[]);
   }
 });
@@ -105,5 +106,80 @@ test('detect v14 nested and dotted darkness hook updates',()=>{
 test('clearing night selector while scene active stops night without touching day or other playlists',async()=>{
   const f=fixture();f.scene.environment.darknessLevel=1;await f.controller.enqueue(f.scene);
   f.scene.flags['dg-house-rules'][NIGHT_FLAG]='';await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id]);
+});
+
+test('sequential and shuffle playlists use playNext, not playAll',async()=>{
+  for(const mode of [0,1]){
+    const f=fixture();
+    f.night.mode=mode;
+    f.scene.environment.darknessLevel=1;
+    await f.controller.enqueue(f.scene);
+    assert.deepEqual(f.log,['next:'+f.night.id]);
+    f.scene.environment.darknessLevel=0;
+    await f.controller.enqueue(f.scene);
+    assert.deepEqual(f.log,['next:'+f.night.id,'stop:'+f.night.id,'play:'+f.day.id]);
+    assert.equal(playlistModeLabel(mode),mode===0?'Sequential':'Shuffle');
+  }
+});
+
+test('non-simultaneous daytime playlist is restored with native playNext',async()=>{
+  const f=fixture();f.day.mode=1;
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  f.scene.environment.darknessLevel=0;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id,'next:'+f.day.id]);
+});
+
+test('soundboard selection requires explicit track and starts only chosen sound',async()=>{
+  const f=fixture();f.night.mode=-1;
+  const sound={id:'soundboardsound1',name:'Distant Bell'};
+  f.night.sounds={contents:[sound]};
+  f.scene.environment.darknessLevel=1;
+  assert.equal(playlistDecision(f.scene,f.game),null,'must not pick arbitrary soundboard sound');
+  await f.controller.enqueue(f.scene);assert.deepEqual(f.log,[]);
+  f.scene.flags['dg-house-rules'][NIGHT_SOUND_FLAG]=sound.id;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id]);
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id],'must not play twice');
+  f.scene.environment.darknessLevel=0;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id,'stop:'+f.night.id,'play:'+f.day.id]);
+});
+
+test('invalid soundboard sound ID is ignored and never accidentally played',async()=>{
+  const f=fixture();f.night.mode=-1;
+  f.night.sounds={contents:[{id:'soundboardsound1',name:'Bell'}]};
+  f.scene.flags['dg-house-rules'][NIGHT_SOUND_FLAG]='missingSound000';
+  f.scene.environment.darknessLevel=1;
+  assert.equal(playlistDecision(f.scene,f.game),null);
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,[]);
+});
+
+test('night soundboard track can change safely mid-night',async()=>{
+  const f=fixture();f.night.mode=-1;
+  const bell={id:'soundboardsound1',name:'Bell'};
+  const hum={id:'soundboardsound2',name:'Hum'};
+  f.night.sounds={contents:[bell,hum]};
+  f.scene.flags['dg-house-rules'][NIGHT_SOUND_FLAG]=bell.id;
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  f.scene.flags['dg-house-rules'][NIGHT_SOUND_FLAG]=hum.id;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,[
+    'sound:'+f.night.id+':'+bell.id,'stop:'+f.night.id,'sound:'+f.night.id+':'+hum.id
+  ]);
+  assert.equal(sceneUpdateAffectsAudio({flags:{'dg-house-rules':{darknessPlaylistSound:hum.id}}}),true);
+});
+
+test('soundboard daytime playlist is never auto-triggered without explicit sound',async()=>{
+  const f=fixture();f.day.mode=-1;
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  f.scene.environment.darknessLevel=0;
+  await f.controller.enqueue(f.scene);
   assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id]);
 });
