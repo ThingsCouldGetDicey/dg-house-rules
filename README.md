@@ -43,6 +43,42 @@ true secret rolls, use Foundry's private/blind roll modes instead.
 A live two-client Foundry GM/player session comparison has not yet been
 completed. This is an initial experimental release.
 
+## Scene darkness playlist switching (v0.2.0)
+
+In **Scene Configuration**, next to the native **Scene Playlist**, expand
+**Darkness Playlist (optional)**. Choose a **Nighttime playlist** and a
+**Switch at darkness level** value (defaults to `0.5`: 0 = daytime, 1 = night).
+The core Scene Playlist is still the daytime/default playlist. Only the new
+nighttime playlist and threshold are stored in per-Scene flags; Scene.playlist
+is **never overwritten**. Leave Nighttime playlist set to **Disabled** to
+preserve all existing Scene behaviour.
+
+To use it:
+
+1. Prepare a **simultaneous** (mode 2) Playlist for night ambience in the
+   native Playlists directory (do not select a soundboard or sequential list).
+2. Set the normal Scene Playlist to the day ambience you already use.
+3. Expand the Darkness Playlist section and choose your nighttime Playlist.
+4. Save Scene configuration, then use the normal Foundry v14 Scene Lighting
+   controls / **Transition to Darkness**. At the threshold, the primary
+   active GM stops the day playlist and starts the night playlist. Returning
+   to daylight reverses the switch. This also responds to other modules which
+   update the **Scene environment.darknessLevel** field.
+
+No separate night image, duplicate Scene or extra audio module is required.
+The feature does not touch other Playlists or Scenes; an unconfigured Scene has
+no playback automation. Night audio is stopped when the Scene deactivates.
+Only one authoritative GM client issues playback calls. The module does **not**
+change world time or the Scene lighting itself. It only observes darkness
+changes. Playlist controls require an active GM client running the module.
+
+**Compatibility notes:** Foundry v14 ApplicationV2 Scene Config render hook,
+`updateScene` changes, and the official v14 `Playlist.playAll()` and
+`stopAll()` APIs. Offline Chromium and unit integration tests cover the form
+and lighting events. Live acceptance requires installing/enabling this module
+in the intended world and choosing an approved nighttime recording. No
+playlist is created, altered, or played by installation alone.
+
 ## Development
 
 Run:

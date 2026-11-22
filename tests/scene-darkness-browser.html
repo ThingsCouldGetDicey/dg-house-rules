@@ -1,0 +1,50 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Foundry Scene Config — darkness playlist UI test</title>
+<style>
+:root {font-family:system-ui, sans-serif;color:#dfd8c8;background:#17191d}body{margin:0;display:flex;justify-content:center;min-height:700px;align-items:flex-start;padding:25px}.window{width:700px;border:1px solid #775d42;border-radius:8px;background:#282a2e;box-shadow:0 12px 32px #0008}.title{background:#3d342b;padding:15px 18px;font-weight:700;font-size:18px;border-radius:7px 7px 0 0}.tab{background:#343332;padding:12px 18px;color:#e6cea1}.container{padding:12px 18px}label{display:block;margin:8px 0;line-height:2;font-weight:500}select,input{display:block;box-sizing:border-box;width:100%;padding:8px;margin:4px 0 12px;background:#15181c;color:#f2eade;border:1px solid #746955;border-radius:4px}summary{font-weight:650;cursor:pointer;color:#f0dfbd;padding:4px}.hint{font-size:13px;color:#bdb5a5;line-height:1.5}button{background:#65543c;color:white;border:1px solid #987e54;padding:10px 18px;border-radius:4px}#test-status{font-size:14px;color:#b6dbc0}
+</style></head><body><div class="window"><div class="title">Scene Configuration — Dorchester House Exterior</div><div class="tab">Basic &nbsp; | &nbsp; Grid &nbsp; | &nbsp; Lighting &nbsp; | &nbsp; Sound</div><div class="container">
+<form id="scene-form"><div class="form-group"><label>Scene Playlist<select name="playlist"><option value="daydaydaydayday1" selected>Dorchester House — Daytime Ambience</option></select></label></div></form>
+<p id="test-status">Offline UI integration test</p><button id="apply">Save settings (test only)</button>
+</div></div>
+<script>
+window.__hooks=new Map();window.Hooks={on(n,fn){const a=window.__hooks.get(n)||[];a.push(fn);window.__hooks.set(n,a)},once(n,fn){this.on(n,fn)}};
+window.foundry={applications:{sheets:{SceneConfig:class SceneConfig{}}}};
+window.__log=[];
+function playlist(id,name){return {id,name,mode:2,playing:false, async playAll(){this.playing=true;window.__log.push('play:'+id)},async stopAll(){this.playing=false;window.__log.push('stop:'+id)}}}
+const day=playlist('daydaydaydayday1','Dorchester House — Daytime Ambience');
+const night=playlist('nightnightnight1','Dorchester House — Nighttime Ambience');
+const gm={id:'gm',isGM:true,active:true};
+window.__scene={id:'S1',documentName:'Scene',active:true,playlist:day.id,environment:{darknessLevel:0},flags:{'dg-house-rules':{}},getFlag(scope,key){return this.flags[scope]?.[key]}};
+window.game={user:gm,users:{activeGM:gm,contents:[gm]},system:{id:'deltagreen'},scenes:{active:window.__scene},playlists:{get(id){return this.contents.find(p=>p.id===id)},contents:[day,night]},settings:{register(){},get(){return true}},actors:{}};
+</script>
+<script type="module">
+import '../scripts/main.js';
+const app=new foundry.applications.sheets.SceneConfig();app.document=window.__scene;
+for (const fn of window.__hooks.get('renderSceneConfig')||[])fn(app,document.getElementById('scene-form'));
+for (const fn of window.__hooks.get('renderApplicationV2')||[])fn(app,document.getElementById('scene-form'));
+const section=document.querySelector('[data-dg-house-rules-darkness]');
+if(!section || document.querySelectorAll('[data-dg-house-rules-darkness]').length!==1)throw Error('SceneConfig settings missing or duplicated');
+section.open=true;
+const select=document.querySelector('[name="flags.dg-house-rules.darknessPlaylist"]');
+const threshold=document.querySelector('[name="flags.dg-house-rules.darknessThreshold"]');
+if(!select || !threshold)throw Error('Field names not valid for Scene flags');
+select.value='nightnightnight1';threshold.value='0.5';
+window.__formValues=()=>Object.fromEntries(new FormData(document.getElementById('scene-form')));
+window.__testRun=async()=>{
+  const fields=window.__formValues();
+  if(fields['flags.dg-house-rules.darknessPlaylist']!=='nightnightnight1')throw Error('night selector not submitted');
+  if(fields['flags.dg-house-rules.darknessThreshold']!=='0.5')throw Error('threshold not submitted');
+  Object.assign(window.__scene.flags['dg-house-rules'],{darknessPlaylist:fields['flags.dg-house-rules.darknessPlaylist'],darknessThreshold:Number(fields['flags.dg-house-rules.darknessThreshold'])});
+  const day=game.playlists.contents[0],night=game.playlists.contents[1];day.playing=true;
+  window.__scene.environment.darknessLevel=1;
+  for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{environment:{darknessLevel:1}});
+  await new Promise(r=>setTimeout(r,30));
+  if(day.playing || !night.playing)throw Error('day to night transition failed');
+  window.__scene.environment.darknessLevel=0;
+  for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{'environment.darknessLevel':0});
+  await new Promise(r=>setTimeout(r,30));
+  if(!day.playing || night.playing || window.__scene.playlist!==day.id)throw Error('night to day transition failed');
+  document.getElementById('test-status').textContent='PASS: Scene settings + day/night automatic playlist transitions';
+  window.__done=true;
+};
+window.__ready=true;
+</script></body></html>

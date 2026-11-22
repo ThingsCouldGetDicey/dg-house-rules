@@ -1,7 +1,35 @@
 import {
+  MODULE_ID, DarknessPlaylistController, addDarknessPlaylistFields,
+  sceneUpdateAffectsAudio
+} from "./features/darkness-playlist.js";
+import {
   shouldHideTarget, concealRenderedTarget, resolveSpeakerActor
 } from "./features/roll-target-visibility.js";
-const MODULE = "dg-house-rules";
+const MODULE = MODULE_ID;
+const darknessController = new DarknessPlaylistController();
+
+Hooks.on("renderSceneConfig", (app, html) => {
+  if (game.system?.id === "deltagreen") addDarknessPlaylistFields(app, html, game);
+});
+Hooks.on("renderApplicationV2", (app, html) => {
+  if (game.system?.id !== "deltagreen") return;
+  // Foundry v14 SceneConfig inherits ApplicationV2; safeguard against
+  // changes to the specific renderSceneConfig hook name.
+  const SceneConfig = globalThis.foundry?.applications?.sheets?.SceneConfig;
+  if (SceneConfig && app instanceof SceneConfig) addDarknessPlaylistFields(app, html, game);
+});
+Hooks.on("updateScene", (scene, changes) => {
+  if (game.system?.id !== "deltagreen" || !sceneUpdateAffectsAudio(changes)) return;
+  void darknessController.enqueue(scene);
+});
+Hooks.on("canvasReady", canvas => {
+  if (game.system?.id === "deltagreen" && canvas?.scene) void darknessController.enqueue(canvas.scene);
+});
+Hooks.once("ready", () => {
+  if (game.system?.id === "deltagreen" && game.scenes?.active)
+    void darknessController.enqueue(game.scenes.active);
+});
+
 
 Hooks.once("init", () => {
   if (game.system?.id !== "deltagreen") return;

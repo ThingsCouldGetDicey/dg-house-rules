@@ -10,6 +10,7 @@ ROOT=Path(__file__).resolve().parents[1]
 EXPECTED=[
     "module.json", "LICENSE", "README.md",
     "scripts/main.js", "scripts/features/roll-target-visibility.js",
+    "scripts/features/darkness-playlist.js",
 ]
 REPO="https://github.com/ThingsCouldGetDicey/dg-house-rules"
 STABLE_MANIFEST=REPO+"/releases/latest/download/module.json"
