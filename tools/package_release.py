@@ -11,7 +11,9 @@ EXPECTED=[
     "module.json", "LICENSE", "README.md",
     "scripts/main.js", "scripts/features/roll-target-visibility.js",
     "scripts/features/darkness-playlist.js",
+    "scripts/features/journal-theme.js",
     "styles/darkness-playlist.css",
+    "styles/king-in-yellow-journal.css",
 ]
 REPO="https://github.com/ThingsCouldGetDicey/dg-house-rules"
 STABLE_MANIFEST=REPO+"/releases/latest/download/module.json"

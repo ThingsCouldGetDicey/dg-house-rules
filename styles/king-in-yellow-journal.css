@@ -1,0 +1,133 @@
+/* Original Impossible Landscapes-inspired journal. Scoped; no copied book art,
+ * fonts, external resources, global theme overrides or scripts. */
+.dg-il-journal {
+ --il-paper:#f0e9d8;--il-ink:#252923;--il-muted:#615c4d;
+ --il-olive:#26362c;--il-gold:#a9872b;--il-rust:#773c2e;
+ color:var(--il-ink)!important;
+ background:radial-gradient(ellipse at 79% 3%,rgb(180 145 50 / 12%),transparent 48%),repeating-linear-gradient(0deg,transparent 0 3px,rgb(89 74 40 / 1.5%) 3px 4px),linear-gradient(135deg,#faf5e8,var(--il-paper) 64%,#e7d8b9);
+ border:1px solid #aa9a7b;border-top:7px solid var(--il-olive);
+ box-shadow:0 0 0 5px rgb(60 53 35 / 7%) inset,0 3px 18px rgb(21 21 17 / 13%);
+ padding:clamp(16px,3.5vw,40px);
+ font:16px/1.67 Georgia,"Times New Roman",serif;
+ max-width:900px;margin:0 auto 18px;box-sizing:border-box;overflow-wrap:break-word;
+}
+.dg-il-journal *, .dg-il-journal *::before,.dg-il-journal *::after {box-sizing:border-box;}
+.dg-il-journal .dg-il-masthead {
+ border-bottom:3px double var(--il-olive);margin-bottom:23px;
+ padding:5px 2px 26px;text-align:center;
+}
+.dg-il-journal .dg-il-eyebrow {
+ font:700 10px/1.8 "Trebuchet MS",Arial,sans-serif;
+ text-transform:uppercase;letter-spacing:.22em;color:var(--il-olive);margin:0 0 12px;
+}
+.dg-il-journal .dg-il-series {
+ font:normal clamp(27px,4vw,42px)/1.1 Georgia,"Times New Roman",serif;
+ text-transform:uppercase;letter-spacing:.045em;color:var(--il-ink);
+ text-shadow:1px 1px #b9ae92;margin:0;
+}
+.dg-il-journal .dg-il-series span{color:var(--il-rust);}
+.dg-il-journal .dg-il-subtitle{
+ font:700 11px/1.65 "Trebuchet MS",Arial,sans-serif;
+ letter-spacing:.17em;text-transform:uppercase;
+ color:var(--il-muted);margin:10px 0 0;
+}
+.dg-il-journal .dg-il-sigil{
+ display:block;width:32px;height:32px;border:2px solid var(--il-gold);
+ border-radius:50%;margin:16px auto 0;transform:rotate(-25deg);position:relative;
+}
+.dg-il-journal .dg-il-sigil::before{
+ content:"";display:block;position:absolute;inset:6px;
+ border:2px solid var(--il-olive);transform:rotate(48deg);
+}
+.dg-il-journal .dg-il-sigil::after{
+ content:"";position:absolute;width:13px;height:2px;
+ background:var(--il-rust);top:12px;left:7px;transform:rotate(-42deg);
+}
+.dg-il-journal h2,.dg-il-journal h3,.dg-il-journal h4{
+ color:var(--il-olive)!important;font-family:Georgia,"Times New Roman",serif;
+ letter-spacing:.035em;font-weight:700;line-height:1.25;
+}
+.dg-il-journal h2{
+ font-size:clamp(22px,3.3vw,30px);border-bottom:1px solid var(--il-gold);
+ margin:8px 0 16px;padding-bottom:8px;
+}
+.dg-il-journal h3{
+ font-size:19px;border-left:4px solid var(--il-gold);
+ padding-left:11px;margin:23px 0 9px;
+}
+.dg-il-journal h4{font-size:16px;margin:14px 0 8px;}
+.dg-il-journal p,.dg-il-journal li{color:var(--il-ink);}
+.dg-il-journal p{margin:10px 0 15px;}
+.dg-il-journal ul,.dg-il-journal ol{margin:11px 0 21px;padding-left:25px;}
+.dg-il-journal li{padding-left:4px;margin:5px 0;}
+.dg-il-journal li::marker{color:var(--il-rust);}
+.dg-il-journal strong{color:#20271f;}
+.dg-il-journal em{color:var(--il-rust);}
+.dg-il-journal .dg-il-lead{
+ font-size:18px;line-height:1.62;font-style:italic;
+ color:#33372b;margin:17px 0 20px;
+}
+.dg-il-journal .dg-il-filetab{
+ display:inline-block;font:800 11px/1.3 "Trebuchet MS",Arial,sans-serif;
+ letter-spacing:.15em;text-transform:uppercase;background:var(--il-olive);
+ color:#f4eacb;padding:8px 13px;border-left:4px solid var(--il-gold);
+}
+.dg-il-journal .dg-il-alert{
+ padding:13px 16px;margin:19px 0;color:var(--il-ink);
+ background:rgb(190 163 91 / 12%);border-left:5px solid var(--il-rust);
+ border-top:1px solid rgb(87 61 31 / 14%);
+ border-bottom:1px solid rgb(87 61 31 / 14%);
+}
+.dg-il-journal .dg-il-note{
+ border:1px dashed #a28f68;padding:11px 15px;
+ background:rgb(255 252 239 / 50%);color:var(--il-muted);font-size:14px;
+}
+.dg-il-journal .dg-il-table{
+ width:100%;border-collapse:collapse;background:rgb(255 255 255 / 27%);
+ margin:16px 0 20px;font-size:15px;
+}
+.dg-il-journal .dg-il-table th,.dg-il-journal .dg-il-table td{
+ text-align:left;vertical-align:top;padding:10px 12px;
+ border-bottom:1px solid #b4a586;color:var(--il-ink);
+}
+.dg-il-journal .dg-il-table th{
+ background:var(--il-olive);color:#f1e7d0;
+ font:700 12px/1.4 "Trebuchet MS",Arial,sans-serif;
+ text-transform:uppercase;letter-spacing:.06em;
+}
+.dg-il-journal .dg-il-source{
+ border-top:3px double #ad996e;margin-top:34px;padding-top:14px;
+ color:var(--il-muted);font:700 10px/1.7 "Trebuchet MS",Arial,sans-serif;
+ text-transform:uppercase;letter-spacing:.08em;
+}
+.dg-il-journal .dg-il-image-link{
+ background:#e3d6bb;border:1px solid #bda677;
+ border-left:4px solid var(--il-gold);padding:13px 16px;
+}
+.dg-il-journal .dg-il-image-link a,.dg-il-journal a,.dg-il-journal .content-link{
+ color:#4d4826;text-decoration:underline;
+ text-decoration-color:var(--il-gold);text-underline-offset:3px;
+}
+.dg-il-journal .dg-il-image-link a:focus-visible,.dg-il-journal a:focus-visible{
+ outline:2px solid var(--il-rust);outline-offset:2px;
+}
+.dg-il-journal .dg-il-private{
+ color:var(--il-rust);font:700 11px/1.4 "Trebuchet MS",Arial,sans-serif;
+}
+.dg-il-journal blockquote{
+ margin:18px 0;border-left:4px solid var(--il-gold);color:#3c3d34;
+ background:rgb(154 138 96 / 10%);padding:10px 16px;font-style:italic;
+}
+.dg-il-journal img{max-width:100%;height:auto;}
+.dg-il-journal .secret{
+ border:1px dashed var(--il-rust);padding:12px;background:rgb(142 69 48 / 8%);
+}
+@media(max-width:540px){
+ .dg-il-journal{padding:17px 14px;font-size:15px;}
+ .dg-il-journal .dg-il-eyebrow{letter-spacing:.10em;}
+ .dg-il-journal .dg-il-table{font-size:13px;}
+ .dg-il-journal .dg-il-table th,.dg-il-journal .dg-il-table td{padding:8px;}
+}
+@media(prefers-reduced-motion:reduce){
+ .dg-il-journal *{animation:none!important;transition:none!important;}
+}

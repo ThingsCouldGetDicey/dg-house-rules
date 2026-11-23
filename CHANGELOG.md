@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0 — King in Yellow-inspired GM journal styling
+
+- Opt-in archival case-file design scoped to campaign Journal pages.
+- Styled headings, Handler notices, provenance, tables and image links.
+- Separate source-verified, image-only Journal Entries designed for individual GM-controlled sharing.
+- Module-relative style loading with a fallback for cached module metadata.
+
 ## 0.6.0 — Matching search in the native Scene Playlist dropdown
 
 - Apply the same magnifying-glass, in-dropdown search to Foundry’s built-in

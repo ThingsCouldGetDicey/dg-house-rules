@@ -1,11 +1,11 @@
 {
   "name": "dg-house-rules",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check scripts/main.js && node --check scripts/features/roll-target-visibility.js && node --check scripts/features/darkness-playlist.js",
+    "check": "node --check scripts/main.js && node --check scripts/features/roll-target-visibility.js && node --check scripts/features/darkness-playlist.js && node --check scripts/features/journal-theme.js",
     "package": "python3 tools/package_release.py"
   }
 }

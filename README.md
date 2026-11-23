@@ -146,3 +146,27 @@ the module and publishes the ZIP and manifest as release assets.
 ## License
 
 MIT — see LICENSE. Not affiliated with Arc Dream Publishing or Foundry Gaming LLC.
+
+
+## Impossible Landscapes GM journal and image handouts (v0.7.0)
+
+The private campaign reference uses original sourcebook-inspired styling:
+aged ivory paper, deep olive/black headings, subdued ochre and rust accents,
+archival evidence tables, book-inspired decorative motifs and a clear
+sourcebook-vs-campaign distinction. The theme is opt-in: only native Journal
+text pages inside class dg-il-journal are affected.
+
+Every owner-approved image is stored separately in an image-only native
+JournalEntry with exactly one image page, independently verified asset bytes,
+source metadata, and default player permission NONE. The Handler master
+Journal links to the independent image-only entry by its actual Foundry UUID.
+This lets a GM use Show Players for an image alone, without disclosing the
+surrounding Handler notes. No image is broadcast by automation.
+
+The canvas note uses the native book icon to open a specific Handler reference
+page. Journal permissions protect Foundry UI visibility, not the underlying
+public image URL from users who discover the URL.
+
+A verified campaign index and Dorchester pages are the first foundation,
+NOT a completed book-scale Handler guide: the remaining encounters and NPC
+pages still need a source-verified authoring pass.

@@ -1,3 +1,4 @@
+import {ensureJournalTheme} from "./features/journal-theme.js";
 import {
   MODULE_ID, DarknessPlaylistController, addDarknessPlaylistFields,
   sceneUpdateAffectsAudio
@@ -26,6 +27,7 @@ Hooks.on("canvasReady", canvas => {
   if (game.system?.id === "deltagreen" && canvas?.scene) void darknessController.enqueue(canvas.scene);
 });
 Hooks.once("ready", () => {
+  if (game.system?.id === "deltagreen") ensureJournalTheme(document);
   if (game.system?.id === "deltagreen" && game.scenes?.active)
     void darknessController.enqueue(game.scenes.active);
 });
