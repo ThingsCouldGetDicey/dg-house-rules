@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — Original Delta Green source-verbatim adventure styling (staged)
+
+- Add an independently written case-file/King in Yellow layout with headers, source headings, evidence, rule, dialogue and GM-only visual treatments.
+- Keep all published text inside real selectable UTF-8 native Journal content, not rendered images, paraphrases or screenshots.
+- Make the source/Sidebar layout mobile-responsive and retain the original printed/PDF page citations.
+- Scope all CSS under .dg-il-journal so unrelated worlds and Journals remain unaffected.
+- Prepare the action UI style for separately tested and approved Scene/audio/macros; this release does not execute them.
+
+
 ## 0.9.0 — Verbatim selectable source text and original page illustrations
 
 - Preserve all 370 original PDF pages as native selectable Journal text, matching the pinned UTF-8 extraction per page byte-for-byte.

@@ -240,3 +240,235 @@
  .dg-il-journal .dg-il-exact-text{font-size:12px;line-height:1.5;}
  .dg-il-journal .dg-il-original-page img{max-height:65vh;}
 }
+
+/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=dc250317f903ea1f1669bd1cfca2333d456078d816160f6e1eaf6e558a309297 */
+/*
+ * DELTA GREEN / KING IN YELLOW — VERBATIM FOUNDRY ADVENTURE STYLE v1
+ * Original design. NOT derived from PF2e/Kingmaker CSS or supplied fonts.
+ * Intended to be bundled into the existing dg-house-rules v14 stylesheet
+ * during an owner-approved rebuild; NOT a standalone script or macro.
+ *
+ * Vital invariant: all source roles are CSS-only spans inside a real <pre>.
+ * HTML text nodes reconstruct the exact PDF UTF-8 bytes in original order.
+ * This style does not rewrite or silently abridge source material.
+ */
+.dg-il-journal.dg-il-adventure {
+  --il-case-ink:#222a25;
+  --il-case-green:#253a31;
+  --il-case-green-light:#3e5546;
+  --il-case-parchment:#f4eedf;
+  --il-case-paper:#faf7ee;
+  --il-case-ochre:#ae862b;
+  --il-case-rust:#823d31;
+  --il-case-rule:#b3a27b;
+  --il-case-muted:#5b5c51;
+  --il-case-seal:#e7deca;
+}
+.dg-il-journal .dg-il-case-header {
+  border-top:5px solid var(--il-case-green,#253a31);
+  border-bottom:2px solid var(--il-case-ochre,#ae862b);
+  padding:15px 15px 20px;
+  margin:12px 0 25px;
+  background:linear-gradient(125deg,#fbf7e8,#e9dfc9);
+  box-shadow:0 5px 17px rgba(38,40,29,.11);
+}
+.dg-il-journal .dg-il-case-overline {
+  font:700 11px/1.5 "Trebuchet MS",Arial,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.16em;
+  color:var(--il-case-green,#253a31);
+  margin:0 0 9px;
+}
+.dg-il-journal .dg-il-case-header h2 {
+  border:0;
+  margin:0 0 12px;
+  padding:0;
+  font:700 clamp(24px,3.1vw,33px)/1.16 Georgia,serif;
+  color:var(--il-case-green,#253a31);
+  letter-spacing:.015em;
+}
+.dg-il-journal .dg-il-case-provenance {
+  font:600 11px/1.6 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.05em;
+  color:var(--il-case-muted,#5b5c51);
+  margin:0;
+}
+.dg-il-journal .dg-il-adventure-grid {
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(190px,28%);
+  gap:22px;
+  align-items:start;
+  margin:18px 0;
+}
+.dg-il-journal .dg-il-adventure-main {min-width:0;}
+.dg-il-journal .dg-il-adventure-sidebar {min-width:0;display:grid;gap:12px;}
+.dg-il-journal .dg-il-adventure-card {
+  background:rgba(251,248,237,.93);
+  border:1px solid var(--il-case-rule,#b3a27b);
+  border-left:4px solid var(--il-case-green,#253a31);
+  padding:13px 15px;
+  overflow-wrap:anywhere;
+}
+.dg-il-journal .dg-il-adventure-card--evidence {
+  border-left-color:var(--il-case-ochre,#ae862b);
+}
+.dg-il-journal .dg-il-adventure-card--consequence {
+  border-left-color:var(--il-case-rust,#823d31);
+}
+.dg-il-journal .dg-il-adventure-card--restricted {
+  border-left:4px solid var(--il-case-rust,#823d31);
+  background:linear-gradient(125deg,#f6edda,#eee2cc);
+}
+.dg-il-journal .dg-il-adventure-card h3 {
+  margin:0 0 9px;
+  padding:0;
+  font:700 15px/1.35 Georgia,serif;
+  border:0;
+  letter-spacing:.01em;
+}
+.dg-il-journal .dg-il-adventure-card ul {
+  margin:8px 0 0;
+  padding-left:19px;
+}
+.dg-il-journal .dg-il-adventure-asset {
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin:12px 0;
+}
+.dg-il-journal .dg-il-adventure-asset img {
+  max-width:130px;
+  max-height:190px;
+  object-fit:contain;
+  border:1px solid var(--il-case-rule,#b3a27b);
+}
+.dg-il-journal .dg-il-adventure-asset > div {min-width:0;flex:1;}
+.dg-il-journal .dg-il-adventure-status {
+  font:700 11px/1.4 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.06em;
+  color:var(--il-case-muted,#5b5c51);
+}
+.dg-il-journal .dg-il-adventure-actions {
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin:15px 0 22px;
+}
+.dg-il-journal .dg-il-adventure-actions .dg-il-adventure-action {
+  font:700 12px/1.4 "Trebuchet MS",Arial,sans-serif;
+  border:1px solid var(--il-case-rule,#b3a27b);
+  background:var(--il-case-paper,#faf7ee);
+  color:var(--il-case-green,#253a31);
+  border-radius:3px;
+  padding:9px 12px;
+  max-width:100%;
+  overflow-wrap:anywhere;
+}
+.dg-il-journal .dg-il-adventure-actions .dg-il-adventure-action--disabled {
+  opacity:.65;
+  border-style:dashed;
+  cursor:not-allowed;
+}
+.dg-il-journal .dg-il-adventure-actions .dg-il-adventure-action:focus-visible {
+  outline:3px solid var(--il-case-ochre,#ae862b);
+  outline-offset:2px;
+}
+/* Direct source view: real HTML UTF-8 text, NOT an image, canvas or iframe. */
+.dg-il-journal .dg-il-exact-text.dg-il-styled-source,
+.dg-il-journal .dg-il-proven-source {
+  display:block;
+  max-width:100%;
+  min-width:0;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  tab-size:4;
+  font:400 15px/1.66 Georgia,"Times New Roman",serif;
+  font-variant-ligatures:none;
+  color:var(--il-case-ink,#222a25);
+  background:var(--il-case-paper,#faf7ee);
+  padding:18px 20px;
+  margin:15px 0 20px;
+  border:1px solid var(--il-case-rule,#b3a27b);
+  border-top:4px solid var(--il-case-green,#253a31);
+  user-select:text;
+  -webkit-user-select:text;
+}
+/* These spans wrap unchanged original bytes; no inferred content. */
+.dg-il-journal .dg-il-styled-source .dg-il-source-heading {
+  font:700 1.43em/1.6 Georgia,serif;
+  color:var(--il-case-green,#253a31);
+  box-shadow:inset 0 -2px var(--il-case-ochre,#ae862b);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-subheading {
+  font:700 1.16em/1.55 Georgia,serif;
+  color:var(--il-case-rust,#823d31);
+  text-decoration:underline;
+  text-decoration-color:var(--il-case-ochre,#ae862b);
+  text-underline-offset:4px;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-readaloud {
+  font-style:italic;
+  background:rgba(174,134,43,.11);
+  box-shadow:-5px 0 0 var(--il-case-ochre,#ae862b);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-dialogue {
+  font-style:italic;
+  color:#514331;
+  background:rgba(185,164,123,.11);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-gm {
+  background:rgba(130,61,49,.12);
+  color:#41261f;
+  box-shadow:-4px 0 0 var(--il-case-rust,#823d31);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-evidence {
+  background:rgba(174,134,43,.15);
+  box-shadow:inset 0 -2px var(--il-case-ochre,#ae862b);
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+.dg-il-journal .dg-il-styled-source .dg-il-source-rules {
+  background:#e6e1d3;
+  color:#273a2b;
+  font-weight:700;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone;
+}
+/* Native source footer stays visually last. */
+.dg-il-journal.dg-il-adventure .dg-il-source {
+  clear:both;
+  margin-top:26px;
+  border-top:3px double var(--il-case-rule,#b3a27b);
+  padding:12px 0 0;
+  font:700 10px/1.7 "Trebuchet MS",Arial,sans-serif;
+  color:var(--il-case-muted,#5b5c51);
+  letter-spacing:.05em;
+}
+@media (max-width:700px) {
+  .dg-il-journal .dg-il-adventure-grid {grid-template-columns:1fr;}
+  .dg-il-journal .dg-il-adventure-sidebar {grid-template-columns:1fr;}
+  .dg-il-journal .dg-il-exact-text.dg-il-styled-source,
+  .dg-il-journal .dg-il-proven-source {
+    font-size:14px;
+    padding:13px 12px;
+    line-height:1.57;
+  }
+  .dg-il-journal .dg-il-case-header {padding:12px;}
+  .dg-il-journal .dg-il-adventure-asset img {max-width:96px;max-height:150px;}
+}
+@media (prefers-reduced-motion: reduce) {
+  .dg-il-journal.dg-il-adventure *, .dg-il-journal.dg-il-adventure *::before {
+    transition:none!important;
+    animation:none!important;
+  }
+}
+/* END DG-IL-VERBATIM-CASEFILE-STYLES v1 */
