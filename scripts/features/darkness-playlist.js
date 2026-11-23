@@ -6,6 +6,7 @@ export const MODULE_ID = "dg-house-rules";
 export const NIGHT_FLAG = "darknessPlaylist";
 export const THRESHOLD_FLAG = "darknessThreshold";
 export const NIGHT_SOUND_FLAG = "darknessPlaylistSound";
+export const CROSSFADE_FLAG = "darknessCrossfade";
 export const PLAYLIST_MODES = Object.freeze({[-1]:"Soundboard",[0]:"Sequential",[1]:"Shuffle",[2]:"Simultaneous"});
 
 export function playlistModeLabel(mode) {return PLAYLIST_MODES[mode] ?? "Unknown";}
@@ -24,10 +25,12 @@ export function nightSettings(scene) {
   const id = flag(scene, NIGHT_FLAG);
   const raw = flag(scene, THRESHOLD_FLAG);
   const soundId = flag(scene, NIGHT_SOUND_FLAG);
+  const crossfade = flag(scene, CROSSFADE_FLAG);
   const number = raw === undefined || raw === null || raw === "" ? DEFAULT_THRESHOLD : Number(raw);
   return {
     nightPlaylistId: typeof id === "string" && /^[a-zA-Z0-9]{16}$/.test(id) ? id : "",
     nightSoundId: typeof soundId === "string" && /^[a-zA-Z0-9]{16}$/.test(soundId) ? soundId : "",
+    crossfade: crossfade !== false && crossfade !== "false" && crossfade !== 0 && crossfade !== "0",
     threshold: Number.isFinite(number) && number >= 0 && number <= 1 ? number : DEFAULT_THRESHOLD
   };
 }
@@ -50,8 +53,10 @@ export function sceneUpdateAffectsAudio(changes) {
     Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, NIGHT_FLAG) ||
     Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, THRESHOLD_FLAG) ||
     Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, NIGHT_SOUND_FLAG) ||
+    Object.hasOwn(changes.flags?.[MODULE_ID] ?? {}, CROSSFADE_FLAG) ||
     Object.hasOwn(changes, "flags." + MODULE_ID + "." + NIGHT_FLAG) ||
     Object.hasOwn(changes, "flags." + MODULE_ID + "." + NIGHT_SOUND_FLAG) ||
+    Object.hasOwn(changes, "flags." + MODULE_ID + "." + CROSSFADE_FLAG) ||
     Object.hasOwn(changes, "flags." + MODULE_ID + "." + THRESHOLD_FLAG);
 }
 
@@ -83,6 +88,27 @@ export async function startPlaylist(playlist, sound = null) {
     case 1: return playlist.playNext();
     case -1: return sound ? playlist.playSound(sound) : undefined;
     default: return undefined;
+  }
+}
+
+/** Native PlaylistSound.fade and Playlist.fade supply the timing. Do not
+ * mutate these global documents just to change one Scene's transition.
+ * The switch only coordinates starting and stopping the intended playlists.
+ */
+export async function transitionPlaylists({incoming, sound = null, outgoing = [], crossfade = true}) {
+  const toStop = [...new Map(outgoing.filter(p => p?.playing && p.id !== incoming?.id)
+    .map(p => [p.id, p])).values()];
+  const shouldStart = incoming && !incoming.playing;
+  if (crossfade) {
+    // Launch both Foundry document updates without awaiting either one first.
+    // Their native audio fades therefore run at the same time.
+    const pending = [];
+    if (shouldStart) pending.push(startPlaylist(incoming, sound));
+    for (const prior of toStop) pending.push(prior.stopAll());
+    await Promise.all(pending);
+  } else {
+    for (const prior of toStop) await prior.stopAll();
+    if (shouldStart) await startPlaylist(incoming, sound);
   }
 }
 
@@ -126,21 +152,22 @@ export class DarknessPlaylistController {
       return;
     }
     const {night, day, sound, isNight} = decision;
+    const {crossfade} = nightSettings(scene);
     if (isNight) {
-      if (prior && (prior.sceneId !== scene.id || prior.playlistId !== night.id || prior.soundId !== sound?.id)) {
-        const old = game.playlists?.get?.(prior.playlistId);
-        this.activeNight = null;
-        if (old?.playing) await old.stopAll();
-      }
-      if (day?.playing) await day.stopAll();
-      if (!night.playing) await startPlaylist(night, sound);
+      const changing = prior && (prior.sceneId !== scene.id ||
+        prior.playlistId !== night.id || prior.soundId !== sound?.id);
+      const old = changing ? game.playlists?.get?.(prior.playlistId) : null;
+      // When changing a Soundboard track *within the same playlist* we must
+      // stop the old sound first; stopping afterward would also stop the new.
+      if (old?.id === night.id && old.playing) await old.stopAll();
+      await transitionPlaylists({incoming:night, sound,
+        outgoing:[day, old?.id === night.id ? null : old], crossfade});
       this.activeNight = {sceneId: scene.id, playlistId: night.id, soundId: sound?.id};
     } else {
       // Handle both normal night->day and a GM reload during daylight when
       // the sound was already playing before this client opened.
-      if (night.playing) await night.stopAll();
+      await transitionPlaylists({incoming:day, outgoing:[night], crossfade});
       this.activeNight = null;
-      if (day && !day.playing) await startPlaylist(day);
     }
   }
 }
@@ -244,6 +271,38 @@ export function addDarknessPlaylistFields(app, element, game) {
   threshold.setAttribute("aria-label", "Darkness threshold");
   thresholdLabel.append(threshold);
   section.append(thresholdLabel);
+  const crossfadeLabel = create("label", {textContent:"Playlist transition"});
+  const crossfadeSelect = create("select", {name:"flags." + MODULE_ID + "." + CROSSFADE_FLAG});
+  crossfadeSelect.setAttribute("aria-label", "Playlist transition");
+  crossfadeSelect.append(
+    create("option", {value:"true", textContent:"Crossfade — overlap fade-in and fade-out"}),
+    create("option", {value:"false", textContent:"Fade out first, then fade in"})
+  );
+  crossfadeSelect.value = settings.crossfade ? "true" : "false";
+  crossfadeLabel.append(crossfadeSelect);
+  section.append(crossfadeLabel);
+  const nativeFadeInfo = create("p");
+  nativeFadeInfo.className = "hint";
+  const fadeText = playlist => {
+    const milliseconds = Number(playlist?.fade);
+    return playlist
+      ? (Number.isFinite(milliseconds) && milliseconds > 0
+        ? (milliseconds / 1000).toLocaleString(undefined, {maximumFractionDigits:2}) + "s"
+        : "0s (instant)")
+      : "not set";
+  };
+  const showFades = () => {
+    const dayPlaylist = game.playlists?.get?.(scene.playlist);
+    const nightPlaylist = game.playlists?.get?.(select.value);
+    nativeFadeInfo.textContent =
+      "Foundry controls fade duration in each Playlist's settings (Fade Duration, ms). " +
+      "Current daytime: " + fadeText(dayPlaylist) +
+      "; nighttime: " + fadeText(nightPlaylist) +
+      ". Set both above 0 for a smooth crossfade. Track-level fade settings may also apply.";
+  };
+  select.addEventListener("change", showFades);
+  showFades();
+  section.append(nativeFadeInfo);
   const hint = create("p", {textContent:"The selected playlist changes when you use Foundry's standard Lighting / Transition to Darkness controls. Only this Scene is affected; the original Playlist setting remains unchanged."});
   hint.className = "hint";
   section.append(hint);

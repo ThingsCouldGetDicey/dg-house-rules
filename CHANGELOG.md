@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.0 — Smooth daytime/nighttime playlist transitions
+
+- Confirm the daylight threshold restores the Scene’s existing normal Playlist.
+- Add a per-Scene Playlist transition selector, defaulting to simultaneous
+  crossfade. The alternative fades out the previous playlist before starting
+  the next one, retaining the former stop-first behaviour.
+- Trigger incoming and outgoing native Foundry Playlist playback operations
+  together for an overlapping crossfade without modifying Playlist documents.
+- Show the configured Fade Duration of both Playlists in Scene settings with
+  instructions for setting a nonzero fade duration on each Playlist.
+- Preserve safe Soundboard track changes within the same Playlist and
+  strengthen automated crossfade and DOM regression testing.
+
 ## 0.3.0 — Search all playlists and play every native mode correctly
 
 - Search by playlist name or playback mode within the Scene darkness selector.

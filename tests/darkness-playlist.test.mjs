@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  NIGHT_FLAG, NIGHT_SOUND_FLAG, THRESHOLD_FLAG, playlistModeLabel, nightSettings, playlistDecision,
+  NIGHT_FLAG, NIGHT_SOUND_FLAG, THRESHOLD_FLAG, CROSSFADE_FLAG, playlistModeLabel, nightSettings, playlistDecision,
   sceneUpdateAffectsAudio, isPrimaryGM, DarknessPlaylistController
 } from '../scripts/features/darkness-playlist.js';
 
@@ -30,7 +30,7 @@ function fixture() {
 test('opt-in threshold has no global or generic Scene side effects',async()=>{
   const f=fixture(); f.scene.flags['dg-house-rules']={};
   assert.equal(playlistDecision(f.scene,f.game),null);
-  assert.deepEqual(nightSettings(f.scene),{nightPlaylistId:'',nightSoundId:'',threshold:0.5});
+  assert.deepEqual(nightSettings(f.scene),{nightPlaylistId:'',nightSoundId:'',crossfade:true,threshold:0.5});
   await f.controller.enqueue(f.scene);assert.deepEqual(f.log,[]);
 });
 
@@ -38,16 +38,16 @@ test('night transition stops only day and starts night; no duplicates',async()=>
   const f=fixture();f.day.playing=true;f.other.playing=true;
   f.scene.environment.darknessLevel=0.7;
   await f.controller.enqueue(f.scene);
-  assert.deepEqual(f.log,['stop:'+f.day.id,'play:'+f.night.id]);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.day.id]);
   await f.controller.enqueue(f.scene);
-  assert.deepEqual(f.log,['stop:'+f.day.id,'play:'+f.night.id]);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.day.id]);
   assert.equal(f.other.playing,true);
 });
 
 test('night->day restores default linked playlist without mutating Scene',async()=>{
   const f=fixture();f.scene.environment.darknessLevel=0.9;await f.controller.enqueue(f.scene);
   f.scene.environment.darknessLevel=0.1;await f.controller.enqueue(f.scene);
-  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id,'play:'+f.day.id]);
+  assert.deepEqual(f.log,['play:'+f.night.id,'play:'+f.day.id,'stop:'+f.night.id]);
   assert.equal(f.scene.playlist,f.day.id);
 });
 
@@ -118,7 +118,7 @@ test('sequential and shuffle playlists use playNext, not playAll',async()=>{
     assert.deepEqual(f.log,['next:'+f.night.id]);
     f.scene.environment.darknessLevel=0;
     await f.controller.enqueue(f.scene);
-    assert.deepEqual(f.log,['next:'+f.night.id,'stop:'+f.night.id,'play:'+f.day.id]);
+    assert.deepEqual(f.log,['next:'+f.night.id,'play:'+f.day.id,'stop:'+f.night.id]);
     assert.equal(playlistModeLabel(mode),mode===0?'Sequential':'Shuffle');
   }
 });
@@ -129,7 +129,7 @@ test('non-simultaneous daytime playlist is restored with native playNext',async(
   await f.controller.enqueue(f.scene);
   f.scene.environment.darknessLevel=0;
   await f.controller.enqueue(f.scene);
-  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id,'next:'+f.day.id]);
+  assert.deepEqual(f.log,['play:'+f.night.id,'next:'+f.day.id,'stop:'+f.night.id]);
 });
 
 test('soundboard selection requires explicit track and starts only chosen sound',async()=>{
@@ -146,7 +146,7 @@ test('soundboard selection requires explicit track and starts only chosen sound'
   assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id],'must not play twice');
   f.scene.environment.darknessLevel=0;
   await f.controller.enqueue(f.scene);
-  assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id,'stop:'+f.night.id,'play:'+f.day.id]);
+  assert.deepEqual(f.log,['sound:'+f.night.id+':'+sound.id,'play:'+f.day.id,'stop:'+f.night.id]);
 });
 
 test('invalid soundboard sound ID is ignored and never accidentally played',async()=>{
@@ -173,6 +173,7 @@ test('night soundboard track can change safely mid-night',async()=>{
     'sound:'+f.night.id+':'+bell.id,'stop:'+f.night.id,'sound:'+f.night.id+':'+hum.id
   ]);
   assert.equal(sceneUpdateAffectsAudio({flags:{'dg-house-rules':{darknessPlaylistSound:hum.id}}}),true);
+  assert.equal(sceneUpdateAffectsAudio({flags:{'dg-house-rules':{darknessCrossfade:false}}}),true);
 });
 
 test('soundboard daytime playlist is never auto-triggered without explicit sound',async()=>{
@@ -182,4 +183,47 @@ test('soundboard daytime playlist is never auto-triggered without explicit sound
   f.scene.environment.darknessLevel=0;
   await f.controller.enqueue(f.scene);
   assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.night.id]);
+});
+
+test('crossfade begins destination before ending source in both directions',async()=>{
+  const f=fixture();f.day.playing=true;
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.day.id]);
+  f.scene.environment.darknessLevel=0;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['play:'+f.night.id,'stop:'+f.day.id,
+    'play:'+f.day.id,'stop:'+f.night.id]);
+});
+
+test('fade-out-then-in mode preserves original stop-first transition ordering',async()=>{
+  const f=fixture();f.day.playing=true;
+  f.scene.flags['dg-house-rules'][CROSSFADE_FLAG]=false;
+  assert.equal(nightSettings(f.scene).crossfade,false);
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['stop:'+f.day.id,'play:'+f.night.id]);
+  f.scene.environment.darknessLevel=0;
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['stop:'+f.day.id,'play:'+f.night.id,
+    'stop:'+f.night.id,'play:'+f.day.id]);
+});
+
+test('default transition enabled for existing Scenes with no crossfade flag',()=>{
+  const f=fixture();
+  assert.equal(nightSettings(f.scene).crossfade,true);
+  f.scene.flags['dg-house-rules'][CROSSFADE_FLAG]='false';
+  assert.equal(nightSettings(f.scene).crossfade,false);
+});
+
+test('same Soundboard playlist track change stops old sound before new one',async()=>{
+  const f=fixture();f.night.mode=-1;
+  f.night.sounds={contents:[{id:'soundboardsound1',name:'Bell'},{id:'soundboardsound2',name:'Hum'}]};
+  f.scene.flags['dg-house-rules'].darknessPlaylistSound='soundboardsound1';
+  f.scene.environment.darknessLevel=1;
+  await f.controller.enqueue(f.scene);
+  f.scene.flags['dg-house-rules'].darknessPlaylistSound='soundboardsound2';
+  await f.controller.enqueue(f.scene);
+  assert.deepEqual(f.log,['sound:'+f.night.id+':soundboardsound1',
+    'stop:'+f.night.id,'sound:'+f.night.id+':soundboardsound2']);
 });

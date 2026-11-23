@@ -14,8 +14,8 @@ function playlist(id,name,mode=2){return {id,name,mode,playing:false,
  async playNext(){this.playing=true;window.__log.push('next:'+id)},
  async playSound(sound){this.playing=true;window.__log.push('sound:'+id+':'+sound.id)},
  async stopAll(){this.playing=false;window.__log.push('stop:'+id)}}}
-const day=playlist('daydaydaydayday1','Dorchester House — Daytime Ambience');
-const night=playlist('nightnightnight1','Dorchester House — Nighttime Ambience');
+const day=playlist('daydaydaydayday1','Dorchester House — Daytime Ambience');day.fade=1500;
+const night=playlist('nightnightnight1','Dorchester House — Nighttime Ambience');night.fade=2500;
 const mystery=playlist('mysteryshuffle01','Mystery Investigation After Dark',1);
 const sequential=playlist('sequentialtrack1','Unanswered Questions',0);
 const board=playlist('soundboardnight1','Chime & Ominous Bells',-1);
@@ -35,8 +35,14 @@ if(!section || document.querySelectorAll('[data-dg-house-rules-darkness]').lengt
 section.open=true;
 const select=document.querySelector('[name="flags.dg-house-rules.darknessPlaylist"]');
 const threshold=document.querySelector('[name="flags.dg-house-rules.darknessThreshold"]');
+const transition=document.querySelector('[name="flags.dg-house-rules.darknessCrossfade"]');
+if(!transition || transition.value!=='true')throw Error('Default crossfade setting is missing or disabled');
+
+
 if(!select || !threshold)throw Error('Field names not valid for Scene flags');
 select.value='nightnightnight1';threshold.value='0.5';
+select.dispatchEvent(new Event('change',{bubbles:true}));
+if(!document.querySelector('[data-dg-house-rules-darkness]').textContent.includes('Current daytime: 1.5s; nighttime: 2.5s'))throw Error('Current native playlist fade durations missing');
 const playlistSearch=document.querySelector('[aria-label="Search nighttime playlists"]');
 const soundboardSelect=document.querySelector('[aria-label="Nighttime soundboard track"]');
 if(!playlistSearch || !soundboardSelect)throw Error('Search or soundboard fields missing');
@@ -59,6 +65,7 @@ window.__testRun=async()=>{
   const fields=window.__formValues();
   if(fields['flags.dg-house-rules.darknessPlaylist']!=='nightnightnight1')throw Error('night selector not submitted');
   if(fields['flags.dg-house-rules.darknessThreshold']!=='0.5')throw Error('threshold not submitted');
+  if(fields['flags.dg-house-rules.darknessCrossfade']!=='true')throw Error('crossfade option not submitted');
   Object.assign(window.__scene.flags['dg-house-rules'],{darknessPlaylist:fields['flags.dg-house-rules.darknessPlaylist'],darknessThreshold:Number(fields['flags.dg-house-rules.darknessThreshold'])});
   const day=game.playlists.contents[0],night=game.playlists.contents[1];day.playing=true;
   window.__scene.environment.darknessLevel=1;
@@ -75,7 +82,7 @@ window.__testRun=async()=>{
   window.__scene.environment.darknessLevel=1;
   for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{environment:{darknessLevel:1}});
   await new Promise(r=>setTimeout(r,30));
-  if(!mystery.playing || window.__log.at(-1)!=='next:'+mystery.id)throw Error('Shuffle mode must use playNext');
+  if(!mystery.playing || !window.__log.includes('next:'+mystery.id))throw Error('Shuffle mode must use playNext');
   select.value=board.id;select.dispatchEvent(new Event('change',{bubbles:true}));
   if(soundboardSelect.closest('label').hidden || getComputedStyle(soundboardSelect.closest('label')).display==='none' || soundboardSelect.options.length!==3)throw Error('Soundboard track picker not shown');
   soundboardSelect.value='onetrackbell0001';
@@ -83,7 +90,7 @@ window.__testRun=async()=>{
   window.__scene.flags['dg-house-rules'].darknessPlaylistSound=soundboardSelect.value;
   for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{flags:{'dg-house-rules':{darknessPlaylist:board.id}}});
   await new Promise(r=>setTimeout(r,30));
-  if(mystery.playing || !board.playing || window.__log.at(-1)!=='sound:'+board.id+':onetrackbell0001')throw Error('Soundboard must play only selected track');
+  if(mystery.playing || !board.playing || !window.__log.includes('sound:'+board.id+':onetrackbell0001'))throw Error('Soundboard must play only selected track');
   window.__scene.environment.darknessLevel=0;
   for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{environment:{darknessLevel:0}});
   await new Promise(r=>setTimeout(r,30));

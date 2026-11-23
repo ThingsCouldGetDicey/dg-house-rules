@@ -70,6 +70,32 @@ To use it:
    to daylight reverses the switch. This also responds to other modules which
    update the **Scene environment.darknessLevel** field.
 
+### Smooth fade / crossfade behaviour
+
+When the Scene returns to daylight, this feature **restores the original Scene
+Playlist**, not a different fallback. The Scene Playlist field is never
+overwritten.
+
+Choose **Playlist transition → Crossfade — overlap fade-in and fade-out** in
+Scene Configuration. This is the default for Scenes with the darkness feature
+enabled. The incoming playlist starts while the outgoing playlist stops, so
+their built-in fades can overlap. Or choose **Fade out first, then fade in**
+for an intentionally separated transition.
+
+**Duration comes from Foundry’s native Playlists tab:** right-click each
+daytime and nighttime playlist → Edit Playlist → **Fade Duration (ms)**.
+Give both a nonzero duration, for example **1500–2500 ms**, to hear the
+overlap. The Scene configuration displays the current durations. An individual
+track can also have its own fade setting; Foundry combines playlist and track
+fade values. This module deliberately does **not** overwrite shared Playlist
+fade data just because a Scene selects it. A playlist configured with 0ms fade
+will still switch suddenly despite the Crossfade option.
+
+The audio transition follows the darkness threshold in both directions; it
+never changes Scene darkness or plays unrelated soundtracks. As with v0.3.0,
+single-track Soundboard replacements stop the previous track before starting
+another to avoid stopping the new sound accidentally.
+
 No separate night image, duplicate Scene or extra audio module is required.
 Soundboard tracks are never chosen automatically: until you select a sound,
 that Scene has no darkness audio action. A Soundboard selected as the normal
