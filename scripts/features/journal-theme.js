@@ -1,7 +1,7 @@
 /** Opt-in Impossible Landscapes journal theme. Unrelated journals unaffected.
  * A module-relative load also tolerates a cached Foundry package manifest.
  */
-export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.10.0",import.meta.url).href){
+export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.11.0",import.meta.url).href){
   if(!doc?.head||!doc?.createElement)return false;
   const old=[...doc.querySelectorAll('link[rel="stylesheet"]')]
     .find(link=>link.href.includes("/styles/king-in-yellow-journal.css"));

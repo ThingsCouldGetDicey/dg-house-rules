@@ -241,7 +241,7 @@
  .dg-il-journal .dg-il-original-page img{max-height:65vh;}
 }
 
-/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=dc250317f903ea1f1669bd1cfca2333d456078d816160f6e1eaf6e558a309297 */
+/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=1f66c30f93e8d7ccd62382021bd761f9479e919644271b81a819d4bfb1c520ca */
 /*
  * DELTA GREEN / KING IN YELLOW — VERBATIM FOUNDRY ADVENTURE STYLE v1
  * Original design. NOT derived from PF2e/Kingmaker CSS or supplied fonts.
@@ -470,5 +470,83 @@
     transition:none!important;
     animation:none!important;
   }
+}
+
+/* Foundry v14 native source-page inline transclusion; no duplicate text. */
+.dg-il-journal .dg-il-casefile-source-page{
+  border:1px solid var(--il-case-rule,#b3a27b);
+  border-left:4px solid var(--il-case-green,#253a31);
+  background:var(--il-case-paper,#faf7ee);
+  border-radius:2px;
+  margin:13px 0;min-width:0;overflow-wrap:anywhere;
+}
+.dg-il-journal .dg-il-casefile-source-page>summary{
+  display:list-item;cursor:pointer;padding:12px 15px;
+  color:var(--il-case-ink,#222a25);
+  background:linear-gradient(100deg,#f1e8d5,#f8f3e6);
+  font:600 13px/1.5 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.012em;list-style-position:inside;
+}
+.dg-il-journal .dg-il-casefile-source-page>summary::marker{
+  color:var(--il-case-ochre,#ae862b);
+}
+.dg-il-journal .dg-il-casefile-source-page[open]>summary{
+  border-bottom:2px solid var(--il-case-ochre,#ae862b);
+}
+.dg-il-journal .dg-il-casefile-source-page>summary:focus-visible{
+  outline:3px solid var(--il-case-ochre,#ae862b);outline-offset:-3px;
+}
+.dg-il-journal .dg-il-casefile-embed-links{
+  font:700 12px/1.45 "Trebuchet MS",Arial,sans-serif;
+  padding:9px 15px 0;text-align:right;
+}
+.dg-il-journal .dg-il-casefile-native-embed{
+  min-width:0;width:100%;
+  padding:9px clamp(8px,2vw,18px) 16px;
+  overflow-wrap:anywhere;box-sizing:border-box;
+}
+.dg-il-journal .dg-il-casefile-native-embed .content-embed{
+  display:block;max-width:100%;min-width:0;box-sizing:border-box;
+  border:none;background:transparent;box-shadow:none;margin:0;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-journal{
+  margin:0;width:100%;min-width:0;max-width:100%;
+  box-shadow:none;background:transparent;border:0;padding:0;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-masthead{
+  display:none;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-source-detail,
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-note,
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-image-link{
+  max-width:100%;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-original-page img{
+  max-width:100%;height:auto;object-fit:contain;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-source{
+  margin-top:18px;font-size:10px;
+}
+.dg-il-journal .dg-il-casefile-native-embed .dg-il-casefile-page-nav{
+  border-top:1px solid var(--il-case-rule,#b3a27b);
+  padding:10px 2px 7px;font-size:12px;
+}
+@media(max-width:700px){
+  .dg-il-journal .dg-il-casefile-source-page>summary{padding:12px 9px;}
+  .dg-il-journal .dg-il-casefile-native-embed{padding:8px 7px 13px;}
+  .dg-il-journal .dg-il-casefile-embed-links{padding:8px 7px;}
+}
+
+/* Long raw UUID references must not widen the GM sidebar before enrichment. */
+.dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar {
+  min-width:0;max-width:100%;overflow-wrap:anywhere;
+}
+.dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar .dg-il-runbook-section {
+  min-width:0;max-width:100%;width:100%;
+  box-sizing:border-box;overflow-wrap:anywhere;word-break:break-word;
+}
+.dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar .dg-il-runbook-section li,
+.dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar .dg-il-runbook-section p {
+  overflow-wrap:anywhere;word-break:break-word;
 }
 /* END DG-IL-VERBATIM-CASEFILE-STYLES v1 */

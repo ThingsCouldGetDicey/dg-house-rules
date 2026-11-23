@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 — Full sourcebook pages inline inside Handler briefings
+
+- Style each original native Foundry v14 JournalEntryPage inline embed within a collapsible sourcebook page section, without introducing a second text copy.
+- Preserve complete exact text, original artwork and citations while providing direct source-page fallback links.
+- Support sourcebook-scale 370-page section navigation and mobile readability with a GM case-file presentation.
+- No executable macros, Scene activation, player handout sharing or audio playback is introduced by this release.
+
+
 ## 0.10.0 — Original Delta Green source-verbatim adventure styling (staged)
 
 - Add an independently written case-file/King in Yellow layout with headers, source headings, evidence, rule, dialogue and GM-only visual treatments.
