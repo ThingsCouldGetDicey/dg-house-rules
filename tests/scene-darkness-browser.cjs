@@ -18,7 +18,7 @@ const server=http.createServer((req,res)=>{
  let browser;
  try{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-  browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+  browser=await chromium.launch({executablePath:require('./browser-executable.cjs')(),headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
   const page=await browser.newPage({viewport:{width:950,height:1080},deviceScaleFactor:1});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/tests/scene-darkness-browser.html');

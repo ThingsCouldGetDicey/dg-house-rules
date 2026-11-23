@@ -7,7 +7,7 @@ const root=path.resolve(__dirname,'..');
 (async()=>{
  let browser;
  try{
-   browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+   browser=await chromium.launch({executablePath:require('./browser-executable.cjs')(),headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
    const source=path.join(root,'dist','king-in-yellow-sample.html');
    const css=path.join(root,'styles','king-in-yellow-journal.css');
    assert.ok(fs.existsSync(source));

@@ -5,6 +5,7 @@ from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import os
 import subprocess
 import threading
+import shutil
 
 ROOT=Path(__file__).resolve().parents[1]
 class Quiet(SimpleHTTPRequestHandler):
@@ -18,7 +19,18 @@ def main():
         th.start()
         try:
             url="http://127.0.0.1:"+str(server.server_port)+"/tests/browser-smoke.html"
-            command=["chromium","--headless","--no-sandbox","--disable-gpu",
+            candidates=[os.environ.get("BROWSER_BIN"),"chromium","google-chrome","brave"]
+            binary=None
+            for candidate in filter(None,candidates):
+                path=shutil.which(candidate)
+                if not path:continue
+                check=subprocess.run([path,"--version"],capture_output=True,
+                                     text=True,timeout=4)
+                if check.returncode==0:
+                    binary=path
+                    break
+            assert binary,"No working Chromium-compatible browser for DOM smoke"
+            command=[binary,"--headless","--no-sandbox","--disable-gpu",
               "--disable-dev-shm-usage","--no-first-run","--no-default-browser-check",
               "--virtual-time-budget=7000","--dump-dom",url]
             run=subprocess.run(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True,timeout=32)

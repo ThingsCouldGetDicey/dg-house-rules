@@ -241,7 +241,7 @@
  .dg-il-journal .dg-il-original-page img{max-height:65vh;}
 }
 
-/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=1f66c30f93e8d7ccd62382021bd761f9479e919644271b81a819d4bfb1c520ca */
+/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=40876c038e7c64507cf2ddc2799985bbde6e442cf4a388df1aba8a077508f8a2 */
 /*
  * DELTA GREEN / KING IN YELLOW — VERBATIM FOUNDRY ADVENTURE STYLE v1
  * Original design. NOT derived from PF2e/Kingmaker CSS or supplied fonts.
@@ -548,5 +548,112 @@
 .dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar .dg-il-runbook-section li,
 .dg-il-journal.dg-il-adventure .dg-il-adventure-sidebar .dg-il-runbook-section p {
   overflow-wrap:anywhere;word-break:break-word;
+}
+
+/*
+ * ONE native Impossible Landscapes Handler Campaign Journal.
+ * 12 chapter pages (Foundry TOC title.level=1), 74 subchapters (level=2),
+ * 2 in-chapter scene reference pages (level=3), 1 existing master index.
+ * Original PDF text and approved image handouts are NOT duplicated.
+ */
+.dg-il-journal .dg-il-unified-quickstart,
+.dg-il-journal .dg-il-casefile-unified-index{
+  max-width:100%;
+  min-width:0;
+  box-sizing:border-box;
+  overflow-wrap:anywhere;
+  border:1px solid #b1a07b;
+  border-left:4px solid #485a3b;
+  background:linear-gradient(165deg,#fbf8ef 0%,#f3eddf 100%);
+  border-radius:2px;
+  padding:clamp(12px,2.3vw,25px);
+  margin:18px 0 22px;
+  color:#25352a;
+}
+.dg-il-journal .dg-il-unified-quickstart h3,
+.dg-il-journal .dg-il-casefile-unified-index h3{
+  margin:11px 0 14px;
+  letter-spacing:.025em;
+  color:#213d31;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(18px,2.4vw,24px);
+}
+.dg-il-journal .dg-il-unified-quickstart ul{
+  padding-left:22px;
+  margin:12px 0;
+  display:grid;
+  gap:9px;
+}
+.dg-il-journal .dg-il-unified-quickstart li{
+  border-bottom:1px dashed #c7bba0;
+  padding:5px 0 11px;
+}
+.dg-il-journal .dg-il-unified-quickstart .dg-il-note{
+  border-top:1px solid #c7bba0;
+  padding-top:12px;
+  font-size:13px;
+  line-height:1.5;
+}
+.dg-il-journal .dg-il-casefile-unified-index>ol{
+  padding-left:21px;
+  margin:15px 0 0;
+}
+.dg-il-journal .dg-il-casefile-unified-index>ol>li{
+  padding:14px 0;
+  border-top:1px solid #c8b88e;
+}
+.dg-il-journal .dg-il-casefile-unified-index>ol>li>strong{
+  font-family:Georgia,"Times New Roman",serif;
+  color:#213d31;
+  font-size:17px;
+  letter-spacing:.012em;
+}
+.dg-il-journal .dg-il-casefile-unified-index>ol>li>ol{
+  margin:12px 0 0;
+  padding-left:20px;
+  columns:2;
+  column-gap:clamp(15px,3vw,32px);
+}
+.dg-il-journal .dg-il-casefile-unified-index>ol>li>ol>li{
+  padding:3px 0 8px;
+  break-inside:avoid;
+  line-height:1.45;
+  font-size:13px;
+}
+.dg-il-journal .dg-il-casefile-unified-index a,
+.dg-il-journal .dg-il-unified-quickstart a{
+  color:#344e3b;
+  text-decoration:underline;
+  text-decoration-color:#a68a46;
+  text-underline-offset:2px;
+}
+.dg-il-journal .dg-il-casefile-unified-index .dg-il-private{
+  display:block;
+  font:500 11px/1.3 "Trebuchet MS",Arial,sans-serif;
+  color:#6b654e;
+}
+.dg-il-journal .dg-il-archive-technical{
+  margin:18px 0;
+  padding:9px 13px;
+  border:1px dashed #a8976f;
+  border-radius:2px;
+  color:#555b4b;
+  background:#eee8da;
+  font-size:13px;
+}
+.dg-il-journal .dg-il-archive-technical>summary{
+  font:700 12px/1.5 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.04em;
+  cursor:pointer;
+}
+.dg-il-journal .dg-il-archive-technical:not([open])>.dg-il-casefile-playbooks{
+  display:none;
+}
+@media(max-width:720px){
+  .dg-il-journal .dg-il-casefile-unified-index>ol>li>ol{columns:1}
+  .dg-il-journal .dg-il-unified-quickstart,
+  .dg-il-journal .dg-il-casefile-unified-index{padding:13px 10px}
+  .dg-il-journal .dg-il-casefile-unified-index>ol{padding-left:18px}
+  .dg-il-journal .dg-il-casefile-unified-index>ol>li>ol{padding-left:17px}
 }
 /* END DG-IL-VERBATIM-CASEFILE-STYLES v1 */

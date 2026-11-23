@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.12.0 — One unified Impossible Landscapes Handler Journal
+
+- Add original Delta Green/Yellow King case-file styling for a unified JournalEntry index, twelve chapter dividers and 74 subchapter pages.
+- Style native 12/74/2 chapter, section and Scene Reference hierarchy and provide responsive one-journal navigation, including the original-book index and three Exeunts.
+- Keep all 370 pinned PDF pages as source-verified original native content embeds; do not duplicate text or change source UUIDs.
+- Keep player-shareable image handouts separately permissioned, and conceal obsolete source workbook links in a collapsed technical reference.
+- No automatic Scene activation, audio playback, GM-to-player journal display, macros or image sharing.
+
+
 ## 0.11.0 — Full sourcebook pages inline inside Handler briefings
 
 - Style each original native Foundry v14 JournalEntryPage inline embed within a collapsible sourcebook page section, without introducing a second text copy.
