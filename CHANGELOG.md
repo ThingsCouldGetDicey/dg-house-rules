@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.6.0 — Matching search in the native Scene Playlist dropdown
+
+- Apply the same magnifying-glass, in-dropdown search to Foundry’s built-in
+  **Scene Playlist** selector, matching the existing Nighttime selector.
+- Refactor both controls to share one picker implementation and scoped CSS.
+- Move the original native select[name="playlist"] into its wrapper without
+  cloning or replacing it, preserving its options, selected value, listeners,
+  disabled options and standard Foundry form submission.
+- Retain all darkness audio switching, crossfades and the Nighttime selector.
+- Expand real Chromium DOM tests for both menus, native change events, zero
+  search results, disabled choices and saved-field values.
+- Keep module style loading compatible with a cached server manifest; no
+  server restart or Guest GM session changes are required to stage the update.
+
 ## 0.5.0 — Integrated search inside nighttime playlist dropdown
 
 - Replace the separate search input with a single accessible dropdown control.

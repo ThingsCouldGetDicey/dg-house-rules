@@ -43,7 +43,7 @@ true secret rolls, use Foundry's private/blind roll modes instead.
 A live two-client Foundry GM/player session comparison has not yet been
 completed. This is an initial experimental release.
 
-## Scene darkness playlist switching (v0.3.0)
+## Scene darkness playlist switching (v0.6.0)
 
 In **Scene Configuration**, next to the native **Scene Playlist**, expand
 **Darkness Playlist (optional)**. Choose a **Nighttime playlist** and a
@@ -52,6 +52,16 @@ The core Scene Playlist is still the daytime/default playlist. Only the new
 nighttime playlist and threshold are stored in per-Scene flags; Scene.playlist
 is **never overwritten**. Leave Nighttime playlist set to **Disabled** to
 preserve all existing Scene behaviour.
+
+**Both playlist fields now use the same searchable in-dropdown control.**
+Open the regular **Scene Playlist** selector and use the magnifying-glass box
+inside its dropdown, just as you would with **Nighttime playlist**. The regular
+Scene Playlist is the **native Foundry field**, not a separate module flag:
+the existing select, available options, selected value, change events, and
+normal Foundry save behaviour are preserved. The search input itself has no
+submitted form name. A search does not change a playlist until you explicitly
+select a result. Existing disabled native choices stay disabled.
+
 
 To use it:
 

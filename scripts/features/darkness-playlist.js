@@ -183,61 +183,34 @@ export function ensurePickerStyles(doc) {
     .some(link => link.href.includes(key))) return;
   const style = doc.createElement("link");
   style.rel = "stylesheet";
-  style.href = new URL("../../styles/" + key + "?v=0.5.0", import.meta.url).href;
+  style.href = new URL("../../styles/" + key + "?v=0.6.0", import.meta.url).href;
   style.dataset.dgHouseRulesPickerStyle = "true";
   doc.head.append(style);
 }
 
-/** Expandable controls injected into the native Scene settings form. */
-export function addDarknessPlaylistFields(app, element, game) {
-  const scene = app?.document ?? app?.object;
-  if (scene?.documentName !== "Scene" || !game?.user?.isGM) return false;
-  const form = element?.matches?.("form") ? element : element?.querySelector?.("form");
-  if (!form || form.querySelector("[data-dg-house-rules-darkness]")) return false;
-  const doc = form.ownerDocument;
-  ensurePickerStyles(doc);
+/** Reusable search-in-dropdown wrapper. Keeps the actual original select,
+ * including its name/options/listeners, so Foundry saves the same field.
+ */
+export function createSearchablePlaylistPicker(select, {
+  kind = "night",
+  ariaName = "Nighttime playlist",
+  searchLabel = "Search nighttime playlists"
+} = {}) {
+  if (!select || select.tagName !== "SELECT" || !select.name) return null;
+  if (select.closest(".dg-house-rules-picker")) return null;
+  const doc = select.ownerDocument;
   const create = (tag, props = {}) => Object.assign(doc.createElement(tag), props);
-  const section = create("details");
-  section.dataset.dgHouseRulesDarkness = "true";
-  section.className = "dg-house-rules-darkness";
-  section.style.cssText = "margin:12px 0;padding:10px;border:1px solid var(--color-border-light-primary,#777);border-radius:5px";
-  const settings = nightSettings(scene);
-  section.open = Boolean(settings.nightPlaylistId);
-  section.append(create("summary", {textContent:"Darkness Playlist (optional)"}));
-  const intro = create("p", {textContent:
-    "The normal Scene Playlist is daytime audio. Search all playlists below, including Sequential, Shuffle and Soundboard. Soundboards require you to select a track."});
-  intro.className = "hint";
-  section.append(intro);
-  const choices = [...(game.playlists?.contents ?? [])]
-    .sort((a, b) => a.name.localeCompare(b.name));
-  // Native HTML select popups cannot contain an input. Keep a genuine
-  // submitted select (hidden visually) and render an accessible in-form popup
-  // whose search row exists *inside the open dropdown*, never above it.
-  const label = create("label", {textContent:"Nighttime playlist"});
   const picker = create("div");
   picker.className = "dg-house-rules-picker";
-  const select = create("select", {name:"flags." + MODULE_ID + "." + NIGHT_FLAG});
-  select.className = "dg-house-rules-picker-value";
-  // Hide immediately, even before the on-demand CSS finishes loading.
+  select.classList.add("dg-house-rules-picker-value");
   select.style.display = "none";
   select.tabIndex = -1;
   select.setAttribute("aria-hidden", "true");
-  const empty = create("option", {value:"", textContent:"Disabled — keep normal Scene Playlist"});
-  const originals = [empty];
-  for (const playlist of choices) {
-    originals.push(create("option", {value:playlist.id,
-      textContent:playlist.name + " (" + playlistModeLabel(playlist.mode) + ")"}));
-  }
-  if (settings.nightPlaylistId && !choices.some(p => p.id === settings.nightPlaylistId)) {
-    originals.push(create("option", {value:settings.nightPlaylistId,
-      textContent:"Missing playlist — select another"}));
-  }
-  select.append(...originals);
-  select.value = settings.nightPlaylistId;
-
+  const originals = [...select.options];
+  const choices = originals.filter(o => o.value && !o.disabled);
   const trigger = create("button", {type:"button"});
   trigger.className = "dg-house-rules-picker-trigger";
-  trigger.setAttribute("aria-label", "Nighttime playlist");
+  trigger.setAttribute("aria-label", ariaName);
   trigger.setAttribute("aria-haspopup", "listbox");
   trigger.setAttribute("aria-expanded", "false");
   const triggerText = create("span");
@@ -270,20 +243,19 @@ export function addDarknessPlaylistFields(app, element, game) {
   icon.append(circle, handle);
   const search = create("input", {type:"search", placeholder:"Search playlists…"});
   search.className = "dg-house-rules-picker-search-input";
-  search.setAttribute("aria-label", "Search nighttime playlists");
+  search.setAttribute("aria-label", searchLabel);
   search.autocomplete = "off";
   searchRow.append(icon, search);
 
   const list = create("div");
   list.className = "dg-house-rules-picker-options";
   list.setAttribute("role", "listbox");
-  list.setAttribute("aria-label", "Available nighttime playlists");
+  list.setAttribute("aria-label", "Available " + ariaName.toLocaleLowerCase() + "s");
   const count = create("p");
   count.className = "dg-house-rules-picker-count";
   count.setAttribute("role", "status");
   popup.append(searchRow, list, count);
   picker.append(select, trigger, popup);
-  section.append(label, picker);
 
   const setDisplay = () => {
     triggerText.textContent = originals.find(o => o.value === select.value)?.textContent
@@ -299,6 +271,10 @@ export function addDarknessPlaylistFields(app, element, game) {
       row.setAttribute("role", "option");
       row.setAttribute("aria-selected", String(option.value === select.value));
       if (option.value === select.value) row.classList.add("is-selected");
+      if (option.disabled) {
+        row.disabled = true;
+        row.setAttribute("aria-disabled", "true");
+      }
       row.dataset.playlistId = option.value;
       row.addEventListener("click", () => {
         select.value = option.value;
@@ -313,7 +289,7 @@ export function addDarknessPlaylistFields(app, element, game) {
       emptyRow.className = "dg-house-rules-picker-empty";
       list.append(emptyRow);
     }
-    const matchingPlaylists = matches.filter(o => o.value).length;
+    const matchingPlaylists = matches.filter(o => o.value && !o.disabled).length;
     count.textContent = matchingPlaylists + " of " + choices.length + " playlists match";
   };
   const onOutsidePointer = event => {
@@ -365,6 +341,52 @@ export function addDarknessPlaylistFields(app, element, game) {
     if (!popup.hidden) renderOptions();
   });
   setDisplay();
+  picker.dataset.dgHouseRulesPicker = kind;
+  picker.prepend(select);
+  return {picker, trigger, select, popup, search, list};
+}
+
+/** Expandable controls injected into the native Scene settings form. */
+export function addDarknessPlaylistFields(app, element, game) {
+  const scene = app?.document ?? app?.object;
+  if (scene?.documentName !== "Scene" || !game?.user?.isGM) return false;
+  const form = element?.matches?.("form") ? element : element?.querySelector?.("form");
+  if (!form || form.querySelector("[data-dg-house-rules-darkness]")) return false;
+  const doc = form.ownerDocument;
+  ensurePickerStyles(doc);
+  const create = (tag, props = {}) => Object.assign(doc.createElement(tag), props);
+  const section = create("details");
+  section.dataset.dgHouseRulesDarkness = "true";
+  section.className = "dg-house-rules-darkness";
+  section.style.cssText = "margin:12px 0;padding:10px;border:1px solid var(--color-border-light-primary,#777);border-radius:5px";
+  const settings = nightSettings(scene);
+  section.open = Boolean(settings.nightPlaylistId);
+  section.append(create("summary", {textContent:"Darkness Playlist (optional)"}));
+  const intro = create("p", {textContent:
+    "The normal Scene Playlist is daytime audio. Search all playlists below, including Sequential, Shuffle and Soundboard. Soundboards require you to select a track."});
+  intro.className = "hint";
+  section.append(intro);
+  const choices = [...(game.playlists?.contents ?? [])]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const label = create("label", {textContent:"Nighttime playlist"});
+  const select = create("select", {name:"flags." + MODULE_ID + "." + NIGHT_FLAG});
+  select.setAttribute("aria-label", "Nighttime playlist");
+  select.append(create("option", {value:"", textContent:"Disabled — keep normal Scene Playlist"}));
+  for (const playlist of choices) {
+    select.append(create("option", {
+      value:playlist.id,
+      textContent:playlist.name + " (" + playlistModeLabel(playlist.mode) + ")"
+    }));
+  }
+  if (settings.nightPlaylistId && !choices.some(p => p.id === settings.nightPlaylistId)) {
+    select.append(create("option", {
+      value:settings.nightPlaylistId, textContent:"Missing playlist — select another"
+    }));
+  }
+  select.value = settings.nightPlaylistId;
+  const nightPicker = createSearchablePlaylistPicker(select);
+  if (!nightPicker) throw new Error("Failed to render nighttime playlist selector");
+  section.append(label, nightPicker.picker);
 
   // For soundboards (-1), selecting a specific track is mandatory. Nothing
   // is auto-picked: that could trigger an unintended sting or loud effect.
@@ -438,9 +460,19 @@ export function addDarknessPlaylistFields(app, element, game) {
   const hint = create("p", {textContent:"The selected playlist changes when you use Foundry's standard Lighting / Transition to Darkness controls. Only this Scene is affected; the original Playlist setting remains unchanged."});
   hint.className = "hint";
   section.append(hint);
-  const nativePlaylist = form.querySelector('[name="playlist"]');
+  const nativePlaylist = form.querySelector('select[name="playlist"]');
   const anchor = nativePlaylist?.closest?.(".form-group") ?? nativePlaylist?.parentElement;
   if (anchor?.parentElement) anchor.after(section);
   else form.append(section); // v14 layout fallback, still inside the submitted form
+
+  // Enhance the native field in place and keep its actual select/option nodes.
+  if (nativePlaylist && !nativePlaylist.closest(".dg-house-rules-picker")) {
+    const nativeParent = nativePlaylist.parentElement;
+    const nativeNext = nativePlaylist.nextSibling;
+    const wrapped = createSearchablePlaylistPicker(nativePlaylist, {
+      kind:"scene", ariaName:"Scene Playlist", searchLabel:"Search scene playlists"
+    });
+    if (wrapped) nativeParent.insertBefore(wrapped.picker, nativeNext);
+  }
   return true;
 }

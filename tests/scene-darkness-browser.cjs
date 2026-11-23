@@ -19,7 +19,7 @@ const server=http.createServer((req,res)=>{
  try{
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   browser=await chromium.launch({executablePath:'/usr/bin/chromium',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
-  const page=await browser.newPage({viewport:{width:950,height:1040},deviceScaleFactor:1});
+  const page=await browser.newPage({viewport:{width:950,height:1080},deviceScaleFactor:1});
   const errors=[];page.on('pageerror',error=>errors.push(error.message));
   await page.goto('http://127.0.0.1:'+server.address().port+'/tests/scene-darkness-browser.html');
   await page.waitForFunction(()=>window.__ready===true,null,{timeout:7000}).catch(error=>{throw Error('Scene did not initialize: '+errors.join(' | '),{cause:error})});
@@ -28,9 +28,10 @@ const server=http.createServer((req,res)=>{
   assert.deepEqual(errors,[]);
   const result=await page.evaluate(()=>({fields:window.__formValues(),log:window.__log,
     sectionCount:document.querySelectorAll('[data-dg-house-rules-darkness]').length,
-    popupOpen:!document.querySelector('.dg-house-rules-picker-popup').hidden,
-    searchVisible:getComputedStyle(document.querySelector('.dg-house-rules-picker-search-input')).display!=='none',
-    sourceValueHidden:getComputedStyle(document.querySelector('.dg-house-rules-picker-value')).display==='none',
+    pickerCount:document.querySelectorAll('.dg-house-rules-picker').length,
+    popupOpen:!document.querySelector('[data-dg-house-rules-picker="scene"] .dg-house-rules-picker-popup').hidden,
+    searchVisible:getComputedStyle(document.querySelector('[data-dg-house-rules-picker="scene"] .dg-house-rules-picker-search-input')).display!=='none',
+    sourceValueHidden:getComputedStyle(document.querySelector('[data-dg-house-rules-picker="scene"] select[name="playlist"]')).display==='none',
     src:window.__scene.playlist}));
   assert.deepEqual(result.log,[
     'play:nightnightnight1','stop:daydaydaydayday1',
@@ -40,12 +41,14 @@ const server=http.createServer((req,res)=>{
     'play:daydaydaydayday1','stop:soundboardnight1'
   ]);
   assert.equal(result.sectionCount,1);
+  assert.equal(result.pickerCount,2);
+  assert.equal(result.fields.playlist,"daydaydaydayday1");
   assert.equal(result.popupOpen,true);
   assert.equal(result.searchVisible,true);
   assert.equal(result.sourceValueHidden,true);
-  const output=path.join(root,'dist','scene-darkness-settings-integrated-search-preview.png');fs.mkdirSync(path.dirname(output),{recursive:true});
+  const output=path.join(root,'dist','scene-both-playlists-search-preview.png');fs.mkdirSync(path.dirname(output),{recursive:true});
   await page.screenshot({path:output});
-  console.log('CHROMIUM SCENE CONFIG PASS: search inside expanded dropdown with icon; no external search; mouse, keyboard, Escape, outside click, saved value; all playback modes and day/night crossfade.');
+  console.log('CHROMIUM SCENE CONFIG PASS: matched searchable Scene + Night dropdowns; actual native select preserved; selection, change event, FormData, disabled options, keyboard and sound regression.');
   console.log('Screenshot: '+output);
  }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1});

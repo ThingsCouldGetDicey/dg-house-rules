@@ -2,7 +2,16 @@
 <style>
 :root {font-family:system-ui, sans-serif;color:#dfd8c8;background:#17191d}body{margin:0;display:flex;justify-content:center;min-height:700px;align-items:flex-start;padding:25px}.window{width:700px;border:1px solid #775d42;border-radius:8px;background:#282a2e;box-shadow:0 12px 32px #0008}.title{background:#3d342b;padding:15px 18px;font-weight:700;font-size:18px;border-radius:7px 7px 0 0}.tab{background:#343332;padding:12px 18px;color:#e6cea1}.container{padding:12px 18px}label{display:block;margin:8px 0;line-height:2;font-weight:500}select,input{display:block;box-sizing:border-box;width:100%;padding:8px;margin:4px 0 12px;background:#15181c;color:#f2eade;border:1px solid #746955;border-radius:4px}summary{font-weight:650;cursor:pointer;color:#f0dfbd;padding:4px}.hint{font-size:13px;color:#bdb5a5;line-height:1.5}button{background:#65543c;color:white;border:1px solid #987e54;padding:10px 18px;border-radius:4px}#test-status{font-size:14px;color:#b6dbc0}
 </style></head><body><div class="window"><div class="title">Scene Configuration — Dorchester House Exterior</div><div class="tab">Basic &nbsp; | &nbsp; Grid &nbsp; | &nbsp; Lighting &nbsp; | &nbsp; Sound</div><div class="container">
-<form id="scene-form"><div class="form-group"><label>Scene Playlist<select name="playlist"><option value="daydaydaydayday1" selected>Dorchester House — Daytime Ambience</option></select></label></div></form>
+<form id="scene-form"><div class="form-group"><label>Scene Playlist<select name="playlist">
+<option value="">None</option>
+<option value="daydaydaydayday1" selected>Dorchester House — Daytime Ambience</option>
+<option value="nightnightnight1">Dorchester House — Nighttime Ambience</option>
+<option value="mysteryshuffle01">Mystery Investigation After Dark</option>
+<option value="sequentialtrack1">Unanswered Questions</option>
+<option value="soundboardnight1">Chime & Ominous Bells</option>
+<option value="cinematicambi001">Cinematic Tension</option>
+<option value="unavailable00001" disabled>Unavailable Playlist</option>
+</select></label></div></form>
 <p id="test-status">Offline UI integration test</p><button id="apply">Save settings (test only)</button>
 </div></div>
 <script>
@@ -27,6 +36,9 @@ window.game={user:gm,users:{activeGM:gm,contents:[gm]},system:{id:'deltagreen'},
 </script>
 <script type="module">
 import '../scripts/main.js';
+const originalScenePlaylistSelect=document.querySelector('select[name="playlist"]');
+window.__scenePlaylistChangeCount=0;
+originalScenePlaylistSelect.addEventListener('change',()=>window.__scenePlaylistChangeCount++);
 const app=new foundry.applications.sheets.SceneConfig();app.document=window.__scene;
 for (const fn of window.__hooks.get('renderSceneConfig')||[])fn(app,document.getElementById('scene-form'));
 for (const fn of window.__hooks.get('renderApplicationV2')||[])fn(app,document.getElementById('scene-form'));
@@ -49,7 +61,8 @@ select.value='nightnightnight1';threshold.value='0.5';
 select.dispatchEvent(new Event('change',{bubbles:true}));
 if(!section.textContent.includes('Current daytime: 1.5s; nighttime: 2.5s'))
   throw Error('Current native playlist fade durations missing');
-const picker=document.querySelector('.dg-house-rules-picker');
+const picker=document.querySelector('[data-dg-house-rules-picker="night"]');
+const scenePicker=document.querySelector('[data-dg-house-rules-picker="scene"]');
 const trigger=picker?.querySelector('.dg-house-rules-picker-trigger');
 const popup=picker?.querySelector('.dg-house-rules-picker-popup');
 const playlistSearch=picker?.querySelector('[aria-label="Search nighttime playlists"]');
@@ -58,6 +71,23 @@ const list=picker?.querySelector('[role="listbox"]');
 const icon=picker?.querySelector('.dg-house-rules-picker-search-row svg');
 if(!picker || !trigger || !popup || !playlistSearch || !soundboardSelect || !icon)
   throw Error('Integrated popup or its magnifying-glass icon missing');
+if(!scenePicker || document.querySelectorAll('.dg-house-rules-picker').length!==2)
+  throw Error('Both Scene and Nighttime playlist pickers must be present exactly once');
+const scenePlaylist=scenePicker.querySelector('select[name="playlist"]');
+const sceneTrigger=scenePicker.querySelector('.dg-house-rules-picker-trigger');
+const scenePopup=scenePicker.querySelector('.dg-house-rules-picker-popup');
+const sceneSearch=scenePicker.querySelector('[aria-label="Search scene playlists"]');
+const sceneOptions=scenePicker.querySelector('[role="listbox"]');
+const sceneIcon=scenePicker.querySelector('.dg-house-rules-picker-search-row svg');
+if(scenePlaylist!==originalScenePlaylistSelect || !sceneTrigger || !scenePopup || !sceneSearch || !sceneIcon)
+  throw Error('Native Foundry Scene Playlist select was replaced or picker lacks icon');
+if(!scenePopup.hidden || scenePlaylist.value!==game.playlists.contents[0].id)
+  throw Error('Native Scene Playlist value changed during UI injection');
+if(getComputedStyle(scenePlaylist).display!=='none')
+  throw Error('Original Scene Playlist select is still visibly duplicated');
+if([...scenePlaylist.options].length!==8)
+  throw Error('Native Scene Playlist options were altered by injection');
+
 if(!popup.hidden || !select.classList.contains('dg-house-rules-picker-value'))
   throw Error('Dropdown should start closed with native value field hidden');
 if(getComputedStyle(select).display!=='none')throw Error('Native value selector is still visible');
@@ -106,9 +136,60 @@ window.__verifySearch=()=>{
   if(!popup.hidden)throw Error('Click outside must close dropdown');
 };
 window.__verifySearch();
+window.__verifySceneSearch=()=>{
+  sceneTrigger.click();
+  if(scenePopup.hidden || document.activeElement!==sceneSearch ||
+      sceneTrigger.getAttribute('aria-expanded')!=='true')
+    throw Error('Scene playlist popup must focus the internal search input');
+  const current=scenePlaylist.value;
+  sceneSearch.value='mystery';
+  sceneSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  const matched=[...sceneOptions.querySelectorAll('[role="option"]')];
+  if(matched.length!==1 || matched[0].dataset.playlistId!=='mysteryshuffle01')
+    throw Error('Scene dropdown must filter results to Mystery');
+  if(scenePlaylist.value!==current)throw Error('Scene playlist search changed selection without choosing');
+  matched[0].click();
+  if(!scenePopup.hidden || scenePlaylist.value!=='mysteryshuffle01'
+     || !sceneTrigger.textContent.includes('Mystery Investigation'))
+    throw Error('Scene picker selection did not update original native select');
+  if(window.__scenePlaylistChangeCount!==1)
+    throw Error('Native select change event was not dispatched');
+  if(new FormData(document.getElementById('scene-form')).get('playlist')!=='mysteryshuffle01')
+    throw Error('Foundry FormData did not see the new native Scene Playlist value');
+  // The form field updates while the saved Scene document stays unchanged.
+  if(window.__scene.playlist!==game.playlists.contents[0].id)
+    throw Error('UI mutated saved Scene before form submission');
+
+  sceneTrigger.click();
+  sceneSearch.value='unavailable';
+  sceneSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  const disabled=[...sceneOptions.querySelectorAll('[role="option"]')];
+  if(disabled.length!==1 || !disabled[0].disabled)
+    throw Error('Native disabled option was made selectable');
+  sceneSearch.value='no-such-name';
+  sceneSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(!sceneOptions.textContent.includes('No playlists match') || scenePlaylist.value!=='mysteryshuffle01')
+    throw Error('Scene empty results lost playlist value');
+  sceneSearch.value='';sceneSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(sceneOptions.querySelectorAll('[role="option"]').length!==8)
+    throw Error('Scene search clear did not restore original options');
+  sceneSearch.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  if(!scenePopup.hidden || document.activeElement!==sceneTrigger)
+    throw Error('Scene picker Escape failed');
+  // Reset for the unrelated day/night audio regression tests.
+  sceneTrigger.click();
+  const reset=[...sceneOptions.querySelectorAll('[role="option"]')]
+    .find(b=>b.dataset.playlistId==='daydaydaydayday1');
+  if(!reset)throw Error('Default daytime playlist missing from original dropdown');
+  reset.click();
+  if(scenePlaylist.value!=='daydaydaydayday1' || window.__scenePlaylistChangeCount!==2)
+    throw Error('Scene picker could not restore default selection');
+};
+window.__verifySceneSearch();
 window.__formValues=()=>Object.fromEntries(new FormData(document.getElementById('scene-form')));
 window.__testRun=async()=>{
   const fields=window.__formValues();
+  if(fields.playlist!=='daydaydaydayday1')throw Error('original native Scene playlist not preserved in submitted form');
   if(fields['flags.dg-house-rules.darknessPlaylist']!=='nightnightnight1')throw Error('night selector not submitted');
   if(fields['flags.dg-house-rules.darknessThreshold']!=='0.5')throw Error('threshold not submitted');
   if(fields['flags.dg-house-rules.darknessCrossfade']!=='true')throw Error('crossfade option not submitted');
@@ -144,11 +225,11 @@ window.__testRun=async()=>{
   window.__choosePlaylist(night.id);
   window.__scene.flags['dg-house-rules'].darknessPlaylist=night.id;
   window.__scene.flags['dg-house-rules'].darknessPlaylistSound='';
-  trigger.click();
-  playlistSearch.value='mystery';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
-  if(popup.hidden || !list.textContent.includes('Mystery Investigation After Dark'))
-    throw Error('Final expanded dropdown preview did not filter to mystery');
-  document.getElementById('test-status').textContent='PASS: search + all modes + day/night transitions';
+  sceneTrigger.click();
+  sceneSearch.value='mystery';sceneSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(scenePopup.hidden || !sceneOptions.textContent.includes('Mystery Investigation After Dark'))
+    throw Error('Final Scene Playlist preview did not filter to mystery');
+  document.getElementById('test-status').textContent='PASS: both searchable dropdowns + native scene field + night transitions';
   window.__done=true;
 };
 window.__ready=true;
