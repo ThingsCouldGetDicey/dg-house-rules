@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 — Verbatim selectable source text and original page illustrations
+
+- Preserve all 370 original PDF pages as native selectable Journal text, matching the pinned UTF-8 extraction per page byte-for-byte.
+- Keep the optional editorially reformatted reading layout as a separate collapsed view.
+- Style source whitespace responsively with pre-wrap and text selection on mobile and desktop.
+- Include original sourcebook images as supplementary page artwork and separate private handouts.
+
+## 0.8.0 — Full private PDF sourcebook Journal formatting
+
+- Style original 370-page sourcebook transcript with two-column text, tagged source
+  evidence, searchable mechanics, and indexed native page links.
+- Provide compact mobile layout for sourcebook and complete chapter indexes.
+- Keep all sourcebook page content GM-only and unrelated Journal styling unchanged.
+
 ## 0.7.0 — King in Yellow-inspired GM journal styling
 
 - Opt-in archival case-file design scoped to campaign Journal pages.

@@ -170,3 +170,45 @@ public image URL from users who discover the URL.
 A verified campaign index and Dorchester pages are the first foundation,
 NOT a completed book-scale Handler guide: the remaining encounters and NPC
 pages still need a source-verified authoring pass.
+
+
+## 370-page private sourcebook reference (v0.8.0)
+
+The user's verified 370-page Impossible Landscapes PDF is organized as
+15 separate, private Foundry Journal volumes containing all 370 numbered
+PDF text pages. Source text is extracted by PDF coordinates, reformatted as
+readable two-column text; 34 illustration-heavy pages are explicitly flagged.
+No OCR and no AI-generated "source facts" are involved.
+
+The original Handler master contains twelve native section index pages
+with links to all 370 PDF pages. Original Gate and Reception references
+also link directly to the source pages. The existing curated location
+notes and approved image-only Journals are preserved. Every volume has
+its original PDF SHA-256 pinned in document metadata, and creation and
+retries independently verify each page.
+
+**Important:** The text volumes are a sourcebook transcription/reference,
+not an individually verified Handler adaptation. Full-page artwork, page
+layout, maps and graphics require their corresponding original PDF
+or separately curated native image-only handouts. Never share GM-only
+sourcebook Journals to players.
+
+
+## Verbatim selectable original PDF text (v0.9.0)
+
+All 370 native Foundry JournalEntryPage text pages contain the original
+sourcebook's UTF-8 selectable text as PRIMARY content. The original PDF
+is SHA-pinned and the extraction is reproducible: pdftotext -raw -enc UTF-8,
+one canonical source-text segment per PDF page. Form feed page delimiters
+are excluded. All original UTF-8 letters, spacing, line breaks, punctuation
+and hyphenation in the extracted source are preserved in the real HTML
+preformatted text element. The saved Foundry HTML is read back, the text
+recovered and its UTF-8 SHA-256 independently checked.
+
+Original PDF text streams contain some unusual reading-order quirks and glyph
+encodings. The verbatim text is not silently corrected. An optional alternative
+reader is clearly labelled as formatted interpretation, not authoritative.
+Some image-only title/divider pages do not have extractable text; their
+original PDF artwork provides the visual information. Every illustrated page
+is linked to its private image-only Journal, with original printed/PDF page
+and source checksum at the bottom. Player sharing is never automatic.

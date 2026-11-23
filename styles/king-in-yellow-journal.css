@@ -131,3 +131,112 @@
 @media(prefers-reduced-motion:reduce){
  .dg-il-journal *{animation:none!important;transition:none!important;}
 }
+
+/* Original PDF sourcebook pages and complete chapter navigation. */
+.dg-il-journal .dg-il-source-detail{
+  border:1px solid #bfaa79;background:rgb(244 233 202 / 64%);
+  color:#363a2e;font:12px/1.65 "Trebuchet MS",Arial,sans-serif;
+  padding:9px 12px;margin:15px 0;overflow-wrap:anywhere;
+}
+.dg-il-journal .dg-il-source-transcription{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:0 24px;margin:23px 0;
+}
+.dg-il-journal .dg-il-reader-column{
+  min-width:0;border-top:2px solid var(--il-olive);
+  padding-top:8px;overflow-wrap:anywhere;
+}
+.dg-il-journal .dg-il-reader-column:nth-child(3),
+.dg-il-journal .dg-il-reader-column:only-child{
+  grid-column:1 / -1;
+}
+.dg-il-journal .dg-il-reader-column>h3:first-child{
+  font:700 10px/1.6 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--il-muted)!important;
+  border:0;padding:0;margin:0 0 13px;
+}
+.dg-il-journal .dg-il-reader-column p{
+  font-size:14px;line-height:1.56;margin:0 0 10px;
+  hyphens:auto;word-break:normal;
+}
+.dg-il-journal .dg-il-reader-column h3:not(:first-child){
+  font-size:16px;line-height:1.3;margin:15px 0 7px;
+}
+.dg-il-journal .dg-il-mechanics{
+  background:rgb(205 187 138 / 13%);
+  border:1px solid #a9a081;margin:18px 0;
+  padding:8px 13px;color:var(--il-ink);
+}
+.dg-il-journal .dg-il-mechanics>summary{
+  cursor:pointer;color:var(--il-olive);
+  font:700 12px/1.6 "Trebuchet MS",Arial,sans-serif;
+  letter-spacing:.025em;
+}
+.dg-il-journal .dg-il-mechanics li{font-size:13px;}
+.dg-il-journal .dg-il-source-index{
+  columns:2;column-gap:25px;padding-left:21px;
+  list-style:decimal;margin-top:16px;
+}
+.dg-il-journal .dg-il-source-index li{
+  break-inside:avoid;border-bottom:1px solid rgb(141 121 79 / 24%);
+  font:13px/1.6 "Trebuchet MS",Arial,sans-serif;
+  padding:6px 0;
+}
+.dg-il-journal .dg-il-page-number{
+  font:700 11px/1.5 "Trebuchet MS",Arial,sans-serif;
+  color:var(--il-muted);white-space:nowrap;margin-right:6px;
+}
+.dg-il-journal .dg-il-directory{
+  padding-left:26px;
+}
+.dg-il-journal .dg-il-directory-item{
+  margin:10px 0 15px;border-bottom:1px dashed #bcaa8a;
+}
+.dg-il-journal .dg-il-directory-item p{
+  color:var(--il-muted);font-size:12px;margin:4px 0 8px;
+}
+@media(max-width:650px){
+ .dg-il-journal .dg-il-source-transcription{grid-template-columns:1fr;}
+ .dg-il-journal .dg-il-reader-column{grid-column:1 / -1;}
+ .dg-il-journal .dg-il-source-index{columns:1;}
+ .dg-il-journal .dg-il-reader-column p{font-size:14px;}
+}
+
+/* Native, checksum-verified UTF-8 text. Do not transform text to images. */
+.dg-il-journal .dg-il-verbatim-source {
+  background:rgba(255,252,244,.63);border:1px solid #bcac88;
+  border-left:4px solid var(--il-olive);
+  padding:14px clamp(10px,2.5vw,22px);margin:20px 0 25px;min-width:0;
+}
+.dg-il-journal .dg-il-verbatim-source h3 {font-size:18px;margin:2px 0 12px;}
+.dg-il-journal .dg-il-exact-text {
+  display:block;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;
+  font:400 14px/1.56 "Liberation Mono","DejaVu Sans Mono",monospace;
+  font-variant-ligatures:none;tab-size:4;unicode-bidi:plaintext;
+  color:#202a24;padding:12px 0 2px;margin:0;max-width:100%;min-width:0;
+  background:transparent;border:0;user-select:text;-webkit-user-select:text;
+}
+.dg-il-journal .dg-il-reader-reflow {
+  border:1px solid #b8a788;background:rgba(255,251,237,.38);
+  margin:20px 0;padding:10px 14px;
+}
+.dg-il-journal .dg-il-reader-reflow>summary {
+  cursor:pointer;font:700 13px/1.6 "Trebuchet MS",Arial,sans-serif;
+  color:var(--il-olive);
+}
+.dg-il-journal .dg-il-reader-reflow[open] .dg-il-source-transcription{margin-top:16px;}
+.dg-il-journal .dg-il-original-page figure{
+  margin:14px 0 22px;display:flex;flex-direction:column;align-items:center;gap:10px;
+}
+.dg-il-journal .dg-il-original-page img{
+  display:block;max-width:100%;max-height:78vh;width:auto;height:auto;
+  object-fit:contain;border:1px solid #b3a27d;box-shadow:0 8px 18px rgb(49 43 29 / 15%);
+}
+.dg-il-journal .dg-il-original-page figcaption{
+  color:var(--il-muted);font:700 11px/1.5 "Trebuchet MS",Arial,sans-serif;
+}
+@media(max-width:650px){
+ .dg-il-journal .dg-il-verbatim-source{padding:11px;}
+ .dg-il-journal .dg-il-exact-text{font-size:12px;line-height:1.5;}
+ .dg-il-journal .dg-il-original-page img{max-height:65vh;}
+}
