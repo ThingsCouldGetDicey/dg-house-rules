@@ -1,0 +1,142 @@
+/* Scene-specific search-in-dropdown UI. All rules scoped to dg-house-rules. */
+.dg-house-rules-picker {
+  position: relative;
+  min-width: 0;
+  width: 100%;
+  margin: 4px 0 12px;
+  font-size: 0.9rem;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-value {
+  display: none !important;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-trigger {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  min-height: 36px;
+  border: 1px solid var(--color-border-light-primary, #777);
+  border-radius: 4px;
+  color: var(--color-text-primary, #e8e0d0);
+  background: var(--color-cool-5, #161819);
+  font: inherit;
+  cursor: pointer;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-trigger:focus-visible,
+.dg-house-rules-picker .dg-house-rules-picker-option:focus-visible,
+.dg-house-rules-picker .dg-house-rules-picker-search-input:focus-visible {
+  outline: 2px solid var(--color-border-highlight, #d0a95d);
+  outline-offset: 1px;
+}
+
+.dg-house-rules-picker-selected {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dg-house-rules-picker-chevron {
+  flex: 0 0 auto;
+  color: var(--color-text-secondary, #bbb);
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-popup:not([hidden]) {
+  display: block;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-popup[hidden] {
+  display: none !important;
+}
+
+.dg-house-rules-picker-popup {
+  background: var(--color-cool-5, #202328);
+  color: var(--color-text-primary, #e8e0d0);
+  border: 1px solid var(--color-border-light-primary, #777);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 35%);
+  margin-top: 3px;
+  padding: 6px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.dg-house-rules-picker-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-border-light-primary, #777);
+  border-radius: 4px;
+  padding: 0 9px;
+  background: var(--color-cool-6, #121518);
+}
+
+.dg-house-rules-picker-search-row svg {
+  flex: 0 0 17px;
+  color: var(--color-text-secondary, #bbb);
+  pointer-events: none;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-search-input {
+  display: block;
+  min-width: 0;
+  flex: 1 1 auto;
+  width: 100%;
+  border: none !important;
+  outline-offset: -1px;
+  box-shadow: none !important;
+  background: transparent;
+  padding: 8px 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-options {
+  overflow-y: auto;
+  max-height: min(220px, 35vh);
+  overscroll-behavior: contain;
+  padding: 4px 0;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-option {
+  display: block;
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+  font: inherit;
+  line-height: 1.25;
+  padding: 9px 10px;
+  margin: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-option:hover,
+.dg-house-rules-picker .dg-house-rules-picker-option:focus-visible {
+  background: var(--color-warm-2, #493e31);
+}
+
+.dg-house-rules-picker .dg-house-rules-picker-option.is-selected {
+  font-weight: 700;
+  background: var(--color-warm-3, #3e372d);
+}
+
+.dg-house-rules-picker-count,
+.dg-house-rules-picker-empty {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #bab3a4);
+  padding: 5px 10px;
+  margin: 0;
+}

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0 — Integrated search inside nighttime playlist dropdown
+
+- Replace the separate search input with a single accessible dropdown control.
+- Show a magnifying-glass search field in the **opened menu**, before options;
+  keep it hidden while the dropdown is closed.
+- Preserve the same native Scene flag field and all four playlist modes.
+- Support mouse and keyboard interaction, Escape, click-outside closing,
+  case-insensitive search and empty-result feedback.
+- Add scoped stylesheet with a module-relative client load fallback so a
+  browser refresh can pick up new visuals when the running Foundry server
+  still holds an older cached package manifest.
+- Extend Chromium acceptance tests to exercise the embedded search, actual
+  form submission, background module CSS loading, and unchanged day/night audio.
+
 ## 0.4.0 — Smooth daytime/nighttime playlist transitions
 
 - Confirm the daylight threshold restores the Scene’s existing normal Playlist.

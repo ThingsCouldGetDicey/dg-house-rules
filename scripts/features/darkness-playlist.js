@@ -172,6 +172,22 @@ export class DarknessPlaylistController {
   }
 }
 
+/** Foundry may cache an older module manifest during a live on-disk update.
+ * Load scoped picker CSS on demand as well as declaring it in module.json,
+ * so a client refresh can pick up styles without forcing a server restart.
+ */
+export function ensurePickerStyles(doc) {
+  if (!doc?.head || !doc?.createElement) return;
+  const key = "darkness-playlist.css";
+  if ([...doc.querySelectorAll('link[rel="stylesheet"]')]
+    .some(link => link.href.includes(key))) return;
+  const style = doc.createElement("link");
+  style.rel = "stylesheet";
+  style.href = new URL("../../styles/" + key + "?v=0.5.0", import.meta.url).href;
+  style.dataset.dgHouseRulesPickerStyle = "true";
+  doc.head.append(style);
+}
+
 /** Expandable controls injected into the native Scene settings form. */
 export function addDarknessPlaylistFields(app, element, game) {
   const scene = app?.document ?? app?.object;
@@ -179,6 +195,7 @@ export function addDarknessPlaylistFields(app, element, game) {
   const form = element?.matches?.("form") ? element : element?.querySelector?.("form");
   if (!form || form.querySelector("[data-dg-house-rules-darkness]")) return false;
   const doc = form.ownerDocument;
+  ensurePickerStyles(doc);
   const create = (tag, props = {}) => Object.assign(doc.createElement(tag), props);
   const section = create("details");
   section.dataset.dgHouseRulesDarkness = "true";
@@ -193,45 +210,161 @@ export function addDarknessPlaylistFields(app, element, game) {
   section.append(intro);
   const choices = [...(game.playlists?.contents ?? [])]
     .sort((a, b) => a.name.localeCompare(b.name));
-  const searchLabel = create("label", {textContent:"Search playlists"});
-  const search = create("input", {type:"search", placeholder:"Search all playlists…"});
-  search.setAttribute("aria-label", "Search nighttime playlists");
-  search.autocomplete = "off";
-  searchLabel.append(search);
+  // Native HTML select popups cannot contain an input. Keep a genuine
+  // submitted select (hidden visually) and render an accessible in-form popup
+  // whose search row exists *inside the open dropdown*, never above it.
   const label = create("label", {textContent:"Nighttime playlist"});
+  const picker = create("div");
+  picker.className = "dg-house-rules-picker";
   const select = create("select", {name:"flags." + MODULE_ID + "." + NIGHT_FLAG});
-  select.setAttribute("aria-label", "Nighttime playlist");
+  select.className = "dg-house-rules-picker-value";
+  // Hide immediately, even before the on-demand CSS finishes loading.
+  select.style.display = "none";
+  select.tabIndex = -1;
+  select.setAttribute("aria-hidden", "true");
   const empty = create("option", {value:"", textContent:"Disabled — keep normal Scene Playlist"});
   const originals = [empty];
   for (const playlist of choices) {
     originals.push(create("option", {value:playlist.id,
       textContent:playlist.name + " (" + playlistModeLabel(playlist.mode) + ")"}));
   }
-  // Retain an unavailable saved ID explicitly; never silently lose it.
   if (settings.nightPlaylistId && !choices.some(p => p.id === settings.nightPlaylistId)) {
     originals.push(create("option", {value:settings.nightPlaylistId,
       textContent:"Missing playlist — select another"}));
   }
   select.append(...originals);
   select.value = settings.nightPlaylistId;
+
+  const trigger = create("button", {type:"button"});
+  trigger.className = "dg-house-rules-picker-trigger";
+  trigger.setAttribute("aria-label", "Nighttime playlist");
+  trigger.setAttribute("aria-haspopup", "listbox");
+  trigger.setAttribute("aria-expanded", "false");
+  const triggerText = create("span");
+  triggerText.className = "dg-house-rules-picker-selected";
+  const caret = create("span", {textContent:"▾"});
+  caret.className = "dg-house-rules-picker-chevron";
+  caret.setAttribute("aria-hidden", "true");
+  trigger.append(triggerText, caret);
+
+  const popup = create("div");
+  popup.className = "dg-house-rules-picker-popup";
+  popup.hidden = true;
+  const searchRow = create("div");
+  searchRow.className = "dg-house-rules-picker-search-row";
+  const icon = doc.createElementNS("http://www.w3.org/2000/svg", "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  icon.setAttribute("width", "17");
+  icon.setAttribute("height", "17");
+  icon.setAttribute("fill", "none");
+  icon.setAttribute("stroke", "currentColor");
+  icon.setAttribute("stroke-width", "2");
+  icon.setAttribute("stroke-linecap", "round");
+  icon.setAttribute("aria-hidden", "true");
+  const circle = doc.createElementNS("http://www.w3.org/2000/svg", "circle");
+  circle.setAttribute("cx", "11");
+  circle.setAttribute("cy", "11");
+  circle.setAttribute("r", "8");
+  const handle = doc.createElementNS("http://www.w3.org/2000/svg", "path");
+  handle.setAttribute("d", "m21 21-4.35-4.35");
+  icon.append(circle, handle);
+  const search = create("input", {type:"search", placeholder:"Search playlists…"});
+  search.className = "dg-house-rules-picker-search-input";
+  search.setAttribute("aria-label", "Search nighttime playlists");
+  search.autocomplete = "off";
+  searchRow.append(icon, search);
+
+  const list = create("div");
+  list.className = "dg-house-rules-picker-options";
+  list.setAttribute("role", "listbox");
+  list.setAttribute("aria-label", "Available nighttime playlists");
   const count = create("p");
-  count.className = "hint";
+  count.className = "dg-house-rules-picker-count";
   count.setAttribute("role", "status");
-  const filter = () => {
-    const value = select.value;
-    const query = search.value.trim().toLocaleLowerCase();
-    const matches = originals.filter(o => !query || o.value === value ||
-      o.textContent.toLocaleLowerCase().includes(query));
-    select.replaceChildren(...matches);
-    // A search never resets the saved selection.
-    select.value = value;
-    const actualMatches = originals.filter(o => o.value && (!query ||
-      o.textContent.toLocaleLowerCase().includes(query))).length;
-    count.textContent = actualMatches + " of " + choices.length + " playlists match";
+  popup.append(searchRow, list, count);
+  picker.append(select, trigger, popup);
+  section.append(label, picker);
+
+  const setDisplay = () => {
+    triggerText.textContent = originals.find(o => o.value === select.value)?.textContent
+      ?? "Disabled — keep normal Scene Playlist";
   };
-  search.addEventListener("input", filter);
-  label.append(select);
-  section.append(searchLabel, label, count);
+  const renderOptions = () => {
+    list.replaceChildren();
+    const query = search.value.trim().toLocaleLowerCase();
+    const matches = originals.filter(o => o.textContent.toLocaleLowerCase().includes(query));
+    for (const option of matches) {
+      const row = create("button", {type:"button", textContent:option.textContent});
+      row.className = "dg-house-rules-picker-option";
+      row.setAttribute("role", "option");
+      row.setAttribute("aria-selected", String(option.value === select.value));
+      if (option.value === select.value) row.classList.add("is-selected");
+      row.dataset.playlistId = option.value;
+      row.addEventListener("click", () => {
+        select.value = option.value;
+        select.dispatchEvent(new Event("change", {bubbles:true}));
+        closePopup();
+        trigger.focus();
+      });
+      list.append(row);
+    }
+    if (!matches.length) {
+      const emptyRow = create("p", {textContent:"No playlists match your search"});
+      emptyRow.className = "dg-house-rules-picker-empty";
+      list.append(emptyRow);
+    }
+    const matchingPlaylists = matches.filter(o => o.value).length;
+    count.textContent = matchingPlaylists + " of " + choices.length + " playlists match";
+  };
+  const onOutsidePointer = event => {
+    if (!picker.contains(event.target)) closePopup();
+  };
+  const closePopup = () => {
+    if (popup.hidden) return;
+    popup.hidden = true;
+    trigger.setAttribute("aria-expanded", "false");
+    doc.removeEventListener("pointerdown", onOutsidePointer);
+  };
+  const openPopup = () => {
+    popup.hidden = false;
+    trigger.setAttribute("aria-expanded", "true");
+    search.value = "";
+    renderOptions();
+    doc.addEventListener("pointerdown", onOutsidePointer);
+    search.focus();
+  };
+  trigger.addEventListener("click", () => popup.hidden ? openPopup() : closePopup());
+  const onPickerKey = event => {
+    if (event.key === "Escape" && !popup.hidden) {
+      event.preventDefault();
+      closePopup();
+      trigger.focus();
+      return;
+    }
+    if (popup.hidden && (event.key === "ArrowDown" || event.key === "ArrowUp")
+      && event.target === trigger) {
+      event.preventDefault();
+      openPopup();
+    } else if (!popup.hidden && (event.key === "ArrowDown" || event.key === "ArrowUp")) {
+      const buttons = [...list.querySelectorAll(".dg-house-rules-picker-option")];
+      if (!buttons.length) return;
+      event.preventDefault();
+      const current = buttons.indexOf(doc.activeElement);
+      const next = event.key === "ArrowDown"
+        ? (current + 1) % buttons.length
+        : (current <= 0 ? buttons.length - 1 : current - 1);
+      buttons[next].focus();
+    } else if (event.key === "Tab" && !popup.hidden) {
+      closePopup();
+    }
+  };
+  picker.addEventListener("keydown", onPickerKey);
+  search.addEventListener("input", renderOptions);
+  select.addEventListener("change", () => {
+    setDisplay();
+    if (!popup.hidden) renderOptions();
+  });
+  setDisplay();
 
   // For soundboards (-1), selecting a specific track is mandatory. Nothing
   // is auto-picked: that could trigger an unintended sting or loud effect.
@@ -263,7 +396,6 @@ export function addDarknessPlaylistFields(app, element, game) {
   };
   select.addEventListener("change", updateTracks);
   updateTracks();
-  filter();
   section.append(trackLabel, trackHint);
   const thresholdLabel = create("label", {textContent:"Switch at darkness level (0=day, 1=night)"});
   const threshold = create("input", {type:"number", min:"0", max:"1", step:"0.05",

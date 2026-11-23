@@ -30,6 +30,13 @@ import '../scripts/main.js';
 const app=new foundry.applications.sheets.SceneConfig();app.document=window.__scene;
 for (const fn of window.__hooks.get('renderSceneConfig')||[])fn(app,document.getElementById('scene-form'));
 for (const fn of window.__hooks.get('renderApplicationV2')||[])fn(app,document.getElementById('scene-form'));
+const pickerStyle=document.querySelector('link[data-dg-house-rules-picker-style="true"]');
+if(!pickerStyle)throw Error('Module did not inject stylesheet on demand');
+await new Promise((resolve,reject)=>{
+  if(pickerStyle.sheet)return resolve();
+  pickerStyle.addEventListener('load',resolve,{once:true});
+  pickerStyle.addEventListener('error',()=>reject(Error('Module styles failed to load')),{once:true});
+});
 const section=document.querySelector('[data-dg-house-rules-darkness]');
 if(!section || document.querySelectorAll('[data-dg-house-rules-darkness]').length!==1)throw Error('SceneConfig settings missing or duplicated');
 section.open=true;
@@ -37,27 +44,66 @@ const select=document.querySelector('[name="flags.dg-house-rules.darknessPlaylis
 const threshold=document.querySelector('[name="flags.dg-house-rules.darknessThreshold"]');
 const transition=document.querySelector('[name="flags.dg-house-rules.darknessCrossfade"]');
 if(!transition || transition.value!=='true')throw Error('Default crossfade setting is missing or disabled');
-
-
 if(!select || !threshold)throw Error('Field names not valid for Scene flags');
 select.value='nightnightnight1';threshold.value='0.5';
 select.dispatchEvent(new Event('change',{bubbles:true}));
-if(!document.querySelector('[data-dg-house-rules-darkness]').textContent.includes('Current daytime: 1.5s; nighttime: 2.5s'))throw Error('Current native playlist fade durations missing');
-const playlistSearch=document.querySelector('[aria-label="Search nighttime playlists"]');
+if(!section.textContent.includes('Current daytime: 1.5s; nighttime: 2.5s'))
+  throw Error('Current native playlist fade durations missing');
+const picker=document.querySelector('.dg-house-rules-picker');
+const trigger=picker?.querySelector('.dg-house-rules-picker-trigger');
+const popup=picker?.querySelector('.dg-house-rules-picker-popup');
+const playlistSearch=picker?.querySelector('[aria-label="Search nighttime playlists"]');
 const soundboardSelect=document.querySelector('[aria-label="Nighttime soundboard track"]');
-if(!playlistSearch || !soundboardSelect)throw Error('Search or soundboard fields missing');
-if(select.options.length!==7)throw Error('All four Foundry modes must appear (plus disabled)');
+const list=picker?.querySelector('[role="listbox"]');
+const icon=picker?.querySelector('.dg-house-rules-picker-search-row svg');
+if(!picker || !trigger || !popup || !playlistSearch || !soundboardSelect || !icon)
+  throw Error('Integrated popup or its magnifying-glass icon missing');
+if(!popup.hidden || !select.classList.contains('dg-house-rules-picker-value'))
+  throw Error('Dropdown should start closed with native value field hidden');
+if(getComputedStyle(select).display!=='none')throw Error('Native value selector is still visible');
+if(select.options.length!==7)throw Error('All four Foundry modes must be available, plus disabled');
 const boardLabel=soundboardSelect.closest('label');
-if(!boardLabel.hidden || getComputedStyle(boardLabel).display!=='none')throw Error('Soundboard picker visible when a normal playlist is selected');
-window.__verifySearch=()=> {
+if(!boardLabel.hidden || getComputedStyle(boardLabel).display!=='none')
+  throw Error('Soundboard picker visible when a normal playlist is selected');
+window.__choosePlaylist=(id)=>{
+  if(popup.hidden)trigger.click();
+  const option=[...list.querySelectorAll('.dg-house-rules-picker-option')]
+    .find(b=>b.dataset.playlistId===id);
+  if(!option)throw Error('Playlist option missing: '+id);
+  option.click();
+};
+window.__verifySearch=()=>{
   const before=select.value;
-  playlistSearch.value='question'; playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
-  if(select.value!==before || ![...select.options].some(o=>o.textContent.includes('Unanswered Questions')))throw Error('Search lost selection or failed to match sequential');
-  if([...select.options].some(o=>o.textContent.includes('Cinematic Tension')))throw Error('Search failed to remove unrelated choices');
-  playlistSearch.value='zzzzz';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
-  if(select.value!==before)throw Error('Empty search overwrote selected saved playlist');
+  // Opening the dropdown focuses the magnifying-glass search row inside it.
+  trigger.click();
+  if(popup.hidden || trigger.getAttribute('aria-expanded')!=='true' ||
+     document.activeElement!==playlistSearch)throw Error('Popup did not open and focus internal search');
+  playlistSearch.value='question';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(select.value!==before || ![...list.querySelectorAll('[role="option"]')]
+      .some(o=>o.textContent.includes('Unanswered Questions')))
+    throw Error('Integrated search lost selection or missed sequential playlist');
+  if([...list.querySelectorAll('[role="option"]')]
+      .some(o=>o.textContent.includes('Cinematic Tension')))
+    throw Error('Integrated search failed to hide unrelated playlist');
+  playlistSearch.value='zzzzzzzz';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(select.value!==before || !list.textContent.includes('No playlists match'))
+    throw Error('Zero-results search did not preserve selection');
   playlistSearch.value='';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
-  if(select.options.length!==7)throw Error('Clear search failed to restore all playlists');
+  if(list.querySelectorAll('[role="option"]').length!==7)
+    throw Error('Clearing search failed to restore every playlist');
+  playlistSearch.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  if(!popup.hidden || document.activeElement!==trigger)
+    throw Error('Escape must close dropdown and restore trigger focus');
+  trigger.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+  if(popup.hidden)throw Error('Keyboard ArrowDown must open picker');
+  playlistSearch.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));
+  if(document.activeElement?.getAttribute('role')!=='option')
+    throw Error('Keyboard ArrowDown must focus a playlist option');
+  picker.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  if(!popup.hidden)throw Error('Keyboard Escape failed to close');
+  trigger.click();
+  document.body.dispatchEvent(new Event('pointerdown',{bubbles:true}));
+  if(!popup.hidden)throw Error('Click outside must close dropdown');
 };
 window.__verifySearch();
 window.__formValues=()=>Object.fromEntries(new FormData(document.getElementById('scene-form')));
@@ -77,13 +123,13 @@ window.__testRun=async()=>{
   await new Promise(r=>setTimeout(r,30));
   if(!day.playing || night.playing || window.__scene.playlist!==day.id)throw Error('night to day transition failed');
   // Exercise Shuffle and Soundboard through the registered Foundry Scene hook.
-  select.value=mystery.id;select.dispatchEvent(new Event('change',{bubbles:true}));
+  window.__choosePlaylist(mystery.id);
   window.__scene.flags['dg-house-rules'].darknessPlaylist=mystery.id;
   window.__scene.environment.darknessLevel=1;
   for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{environment:{darknessLevel:1}});
   await new Promise(r=>setTimeout(r,30));
   if(!mystery.playing || !window.__log.includes('next:'+mystery.id))throw Error('Shuffle mode must use playNext');
-  select.value=board.id;select.dispatchEvent(new Event('change',{bubbles:true}));
+  window.__choosePlaylist(board.id);
   if(soundboardSelect.closest('label').hidden || getComputedStyle(soundboardSelect.closest('label')).display==='none' || soundboardSelect.options.length!==3)throw Error('Soundboard track picker not shown');
   soundboardSelect.value='onetrackbell0001';
   window.__scene.flags['dg-house-rules'].darknessPlaylist=board.id;
@@ -95,10 +141,13 @@ window.__testRun=async()=>{
   for(const fn of window.__hooks.get('updateScene')||[])fn(window.__scene,{environment:{darknessLevel:0}});
   await new Promise(r=>setTimeout(r,30));
   if(board.playing || !day.playing)throw Error('Soundboard to day transition failed');
-  select.value=night.id;select.dispatchEvent(new Event('change',{bubbles:true}));
+  window.__choosePlaylist(night.id);
   window.__scene.flags['dg-house-rules'].darknessPlaylist=night.id;
   window.__scene.flags['dg-house-rules'].darknessPlaylistSound='';
+  trigger.click();
   playlistSearch.value='mystery';playlistSearch.dispatchEvent(new Event('input',{bubbles:true}));
+  if(popup.hidden || !list.textContent.includes('Mystery Investigation After Dark'))
+    throw Error('Final expanded dropdown preview did not filter to mystery');
   document.getElementById('test-status').textContent='PASS: search + all modes + day/night transitions';
   window.__done=true;
 };

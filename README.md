@@ -58,10 +58,13 @@ To use it:
 1. Prepare any native Playlist: Simultaneous, Sequential, Shuffle, or Soundboard.
    Soundboards additionally require selecting one specific track to play.
 2. Set the normal Scene Playlist to the day ambience you already use.
-3. Expand the Darkness Playlist section. Type in **Search playlists** to
-   filter by name or playback mode, then choose a playlist from the dropdown.
-   The search never clears the already selected playlist. If you choose a
-   Soundboard, an additional field asks which sound to play.
+3. Expand the Darkness Playlist section and **open the Nighttime playlist
+   dropdown**. Its search box appears **inside the dropdown**, at the top of
+   the choices, with a magnifying-glass icon on the left. Filter by name or
+   playback mode and select a result. Closing the menu removes the search box
+   from view; the saved playlist stays visible in the closed selector.
+   If you choose a Soundboard, another field asks which track to play.
+   The picker supports mouse, keyboard, Escape, and clicking outside to close.
 4. Save Scene configuration, then use the normal Foundry v14 Scene Lighting
    controls / **Transition to Darkness**. At the threshold, the primary
    active GM stops the day playlist and starts the night playlist according
