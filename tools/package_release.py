@@ -15,6 +15,7 @@ EXPECTED=[
     "styles/darkness-playlist.css",
     "styles/king-in-yellow-journal.css",
 ]
+EXPECTED += [f"styles/il-art/{act}{suffix}.svg" for act in ("reference","nyc","bookshop","boston","missing-room","map","hotel","carcosa") for suffix in ("","-frame")]
 REPO="https://github.com/ThingsCouldGetDicey/dg-house-rules"
 STABLE_MANIFEST=REPO+"/releases/latest/download/module.json"
 

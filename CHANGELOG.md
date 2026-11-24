@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.13.0 — Contextual act journal themes
+
+- Fix low-contrast native Foundry links, icons, focus and hover states.
+- Add original lightweight vector art plates and gilt frames for New York, Boston, cartographic horror, Carcosa, and three Exeunts; neutral reference pages.
+- Choose decoration from each page’s own chapter, not campaign progress. Preserve all source text and native document interactions.
+- Scope decoration to opted-in journals; nested embeds retain a plain reading layout.
+
+
 ## 0.12.0 — One unified Impossible Landscapes Handler Journal
 
 - Add original Delta Green/Yellow King case-file styling for a unified JournalEntry index, twelve chapter dividers and 74 subchapter pages.

@@ -241,7 +241,7 @@
  .dg-il-journal .dg-il-original-page img{max-height:65vh;}
 }
 
-/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=40876c038e7c64507cf2ddc2799985bbde6e442cf4a388df1aba8a077508f8a2 */
+/* BEGIN DG-IL-VERBATIM-CASEFILE-STYLES v1 sha256=13c59285831e2ed543fa741118970e3a1f43433898e02656a1266c11b976bd09 */
 /*
  * DELTA GREEN / KING IN YELLOW — VERBATIM FOUNDRY ADVENTURE STYLE v1
  * Original design. NOT derived from PF2e/Kingmaker CSS or supplied fonts.
@@ -655,5 +655,138 @@
   .dg-il-journal .dg-il-casefile-unified-index{padding:13px 10px}
   .dg-il-journal .dg-il-casefile-unified-index>ol{padding-left:18px}
   .dg-il-journal .dg-il-casefile-unified-index>ol>li>ol{padding-left:17px}
+}
+
+/* Contextual King in Yellow art plates (original SVG illustrations).
+ * Each top-level reading page selects the source chapter's motif. Native
+ * text, embedded source pages, navigation and ownership remain untouched. */
+.dg-il-journal {
+  --il-act-ink:#25291f;
+  --il-act-gold:#b89c53;
+  --il-act-paper:#f4ead1;
+  --il-act-banner:url("il-art/reference.svg");
+  --il-act-frame:url("il-art/reference-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="nyc"] {
+  --il-act-ink:#192a2a;--il-act-gold:#c8a653;--il-act-paper:#eee5d2;
+  --il-act-banner:url("il-art/nyc.svg");--il-act-frame:url("il-art/nyc-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="bookshop"] {
+  --il-act-ink:#342820;--il-act-gold:#c49d54;--il-act-paper:#f0e3c7;
+  --il-act-banner:url("il-art/bookshop.svg");--il-act-frame:url("il-art/bookshop-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="boston"] {
+  --il-act-ink:#26332d;--il-act-gold:#c5ab60;--il-act-paper:#f0ecda;
+  --il-act-banner:url("il-art/boston.svg");--il-act-frame:url("il-art/boston-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="missing-room"] {
+  --il-act-ink:#343133;--il-act-gold:#b49b69;--il-act-paper:#e9e0d4;
+  --il-act-banner:url("il-art/missing-room.svg");--il-act-frame:url("il-art/missing-room-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="map"] {
+  --il-act-ink:#302b23;--il-act-gold:#cfa952;--il-act-paper:#f3e4c5;
+  --il-act-banner:url("il-art/map.svg");--il-act-frame:url("il-art/map-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="hotel"] {
+  --il-act-ink:#32272b;--il-act-gold:#c59a54;--il-act-paper:#eadcc8;
+  --il-act-banner:url("il-art/hotel.svg");--il-act-frame:url("il-art/hotel-frame.svg");
+}
+.dg-il-journal[data-dg-il-act="carcosa"] {
+  --il-act-ink:#2b222b;--il-act-gold:#e0b95c;--il-act-paper:#f5dfb8;
+  --il-act-banner:url("il-art/carcosa.svg");--il-act-frame:url("il-art/carcosa-frame.svg");
+}
+.dg-il-journal:not(.dg-il-journal .dg-il-journal) {
+  --il-olive:var(--il-act-ink);--il-gold:var(--il-act-gold);
+  --il-case-green:var(--il-act-ink);--il-case-ochre:var(--il-act-gold);
+  --il-case-paper:#faf5e8;--il-case-parchment:var(--il-act-paper);
+  background:radial-gradient(ellipse at 0 0,#9b784120,transparent 35%),
+    radial-gradient(ellipse at 100% 100%,#99703f24,transparent 35%),
+    repeating-linear-gradient(0deg,transparent 0 4px,#8b66300a 4px 5px),
+    linear-gradient(125deg,#fff9ed,var(--il-act-paper) 78%,#dfca9f);
+  border:12px solid var(--il-act-gold);
+  border-image:var(--il-act-frame) 28 round;
+  box-shadow:inset 0 0 24px #6a4f3020,0 3px 12px #0003;
+  padding:clamp(12px,3%,28px);
+  min-width:0;max-width:100%;container-type:inline-size;
+}
+.dg-il-journal:not(.dg-il-journal .dg-il-journal)::before {
+  content:"";display:block;width:100%;aspect-ratio:1000/184;
+  min-height:48px;max-height:155px;margin:0 0 18px;
+  background:var(--il-act-banner) center/100% 100% no-repeat;
+  border:1px solid var(--il-act-gold);
+  box-shadow:0 2px 7px #392e2522;pointer-events:none;
+}
+.dg-il-journal:not(.dg-il-journal .dg-il-journal)::after {
+  content:"";display:block;height:8px;margin:22px 0 0;
+  background:linear-gradient(90deg,transparent,var(--il-act-gold) 35%,var(--il-act-ink) 50%,var(--il-act-gold) 65%,transparent);
+  pointer-events:none;
+}
+/* Nested embeds remain plain, readable source pages. */
+.dg-il-journal .dg-il-journal {
+  --il-act-ink:inherit;--il-act-gold:inherit;--il-act-paper:inherit;
+  border-image:none;
+}
+.dg-il-journal .dg-il-filetab {
+  background:var(--il-act-ink,#25291f);
+  color:#fff4cb!important;border:1px solid #b58d38;
+  box-shadow:inset 0 0 0 2px #c49d4533;
+  padding:8px 13px;letter-spacing:.12em;
+}
+.dg-il-journal .dg-il-case-header {
+  border-top:3px double var(--il-act-gold);
+  border-bottom:3px double var(--il-act-gold);
+}
+/* Foundry native links already have a dark background in dark mode.
+ * Set foreground AND background together on all enriched native links.
+ * Wrapping is essential in narrow journal windows, not just phones. */
+.dg-il-journal a.content-link,
+.dg-il-journal a.entity-link,
+.dg-il-journal a.inline-roll,
+.dg-il-journal a.inline-check {
+  color:#fff4cb!important;background:#27291e!important;
+  border:1px solid #b89040!important;
+  border-radius:2px!important;padding:.12em .36em!important;
+  text-decoration:underline!important;text-decoration-color:#e8ce82!important;
+  text-underline-offset:.15em;white-space:normal!important;
+  overflow-wrap:anywhere;box-decoration-break:clone;-webkit-box-decoration-break:clone;
+  font-weight:600;text-shadow:none!important;line-height:1.5;
+}
+.dg-il-journal a.content-link i,
+.dg-il-journal a.entity-link i,
+.dg-il-journal a.inline-roll i,
+.dg-il-journal a.inline-check i {color:#f2d68b!important;}
+.dg-il-journal a.content-link:hover,.dg-il-journal a.entity-link:hover,
+.dg-il-journal a.inline-roll:hover,.dg-il-journal a.inline-check:hover {
+  color:#fff9e6!important;background:#41442b!important;
+  border-color:#e9cb74!important;text-shadow:none!important;
+}
+.dg-il-journal a.content-link:focus-visible,.dg-il-journal a.entity-link:focus-visible,
+.dg-il-journal a.inline-roll:focus-visible,.dg-il-journal a.inline-check:focus-visible {
+  outline:2px solid #704e05!important;outline-offset:3px!important;
+}
+.dg-il-journal a.content-link.broken {
+  color:#fff4cb!important;background:#662e28!important;
+  border-color:#b8755c!important;
+}
+.dg-il-journal .dg-il-unified-quickstart,.dg-il-journal .dg-il-casefile-unified-index {
+  border:1px solid var(--il-act-gold);border-left:4px solid var(--il-act-ink);
+  background:#faf5e8;box-shadow:inset 0 0 0 3px #d6bf8626;
+}
+/* The sheet's own chrome is opt-in and neutral: multi-page views can contain
+ * several acts simultaneously. Native controls/TOC behavior are unchanged. */
+.journal-sheet.dg-il-themed-sheet .window-header {
+  background:linear-gradient(180deg,#302d22,#201f19);
+  color:#fff0c8;border-bottom:2px solid #b89040;
+}
+.journal-sheet.dg-il-themed-sheet .window-header a,
+.journal-sheet.dg-il-themed-sheet .window-header button,
+.journal-sheet.dg-il-themed-sheet .window-header .window-title {color:#fff0c8;}
+@container (max-width:620px) {
+  .dg-il-journal .dg-il-adventure-grid {grid-template-columns:minmax(0,1fr);}
+  .dg-il-journal .dg-il-casefile-unified-index>ol>li>ol {columns:1;}
+  .dg-il-journal .dg-il-source-index {columns:1;}
+}
+@media (max-width:540px) {
+  .dg-il-journal:not(.dg-il-journal .dg-il-journal) {border-width:8px;padding:12px;}
 }
 /* END DG-IL-VERBATIM-CASEFILE-STYLES v1 */
