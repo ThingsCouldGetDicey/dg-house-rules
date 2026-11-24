@@ -1,7 +1,7 @@
 /** Opt-in Impossible Landscapes journal theme. Unrelated journals unaffected.
  * A module-relative load also tolerates a cached Foundry package manifest.
  */
-export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.14.0",import.meta.url).href){
+export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.15.0",import.meta.url).href){
   if(!doc?.head||!doc?.createElement)return false;
   const old=[...doc.querySelectorAll('link[rel="stylesheet"]')]
     .find(link=>link.href.includes("/styles/king-in-yellow-journal.css"));
@@ -100,4 +100,36 @@ export function applyJournalChrome(app, html) {
   observer?.observe(toc,{subtree:true,attributes:true,attributeFilter:["class"]});
   sheetObservers.set(root,{observer});
   return true;
+}
+
+/** GM-only chat controls for explicitly reviewed, player-facing source text.
+ * Never publish surrounding Handler text or infer dialogue from quotation marks.
+ */
+export function spokenChatContent(text) {
+  return '<div style="white-space:pre-wrap">'+String(text).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")+'</div>';
+}
+export function applyJournalSpeech(root, gameRef=globalThis.game, messageClass=globalThis.ChatMessage) {
+  if(!root?.querySelectorAll || !gameRef?.user?.isGM || !messageClass?.create) return 0;
+  let count=0;
+  for(const box of root.querySelectorAll(".dg-il-journal .dg-il-visual-reviewed .dg-il-spoken-box")) {
+    const source=box.querySelector(":scope > pre.dg-il-reviewed-block");
+    if(!source || !["npc-dialogue","read-aloud"].includes(source.dataset.sourceRole))continue;
+    if(box.querySelector(":scope > .dg-il-send-spoken"))continue;
+    const button=box.ownerDocument.createElement("button");
+    button.type="button";button.className="dg-il-send-spoken";button.textContent="Send to Chat";
+    button.title="Send only this original passage publicly to game chat";
+    button.addEventListener("click",async event=>{
+      event.preventDefault();event.stopPropagation();
+      if(!gameRef.user?.isGM || button.disabled || !source.textContent?.trim())return;
+      button.disabled=true;
+      try {
+        await messageClass.create({content:spokenChatContent(source.textContent),speaker:{alias:"Handler"},whisper:[]});
+      } catch(error) {
+        globalThis.ui?.notifications?.error("Could not send journal passage to chat.");
+        console.error("Delta Green journal chat:",error);
+      } finally {button.disabled=false;}
+    });
+    box.append(button);count++;
+  }
+  return count;
 }

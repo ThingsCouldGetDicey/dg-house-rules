@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.15.0 — Source-reviewed NPC dialogue and read-aloud boxes
+
+- Add GM-only Send to Chat controls for explicitly reviewed original spoken passages. Sends only the selected literal text, not surrounding Handler notes. No automatic messages or inferred speech.
+
+
 ## 0.14.0 — Whole journal application skin
 
 - Decorate the native Foundry v14 journal window, title bar, table of contents, search, scrollbars, controls and reading surround using the existing eight chapter palettes and original frame assets.

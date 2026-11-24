@@ -1,4 +1,4 @@
-import {ensureJournalTheme, applyJournalActThemes, applyJournalChrome, detachJournalChrome} from "./features/journal-theme.js";
+import {ensureJournalTheme, applyJournalActThemes, applyJournalChrome, detachJournalChrome, applyJournalSpeech} from "./features/journal-theme.js";
 import {
   MODULE_ID, DarknessPlaylistController, addDarknessPlaylistFields,
   sceneUpdateAffectsAudio
@@ -16,16 +16,17 @@ Hooks.on("renderApplicationV2", (app, html) => {
   if (game.system?.id !== "deltagreen") return;
   applyJournalActThemes(html?.[0] ?? html);
   applyJournalChrome(app, html);
+  applyJournalSpeech(html?.[0] ?? html);
   // Foundry v14 SceneConfig inherits ApplicationV2; safeguard against
   // changes to the specific renderSceneConfig hook name.
   const SceneConfig = globalThis.foundry?.applications?.sheets?.SceneConfig;
   if (SceneConfig && app instanceof SceneConfig) addDarknessPlaylistFields(app, html, game);
 });
 Hooks.on("renderJournalSheet", (app, html) => {
-  if (game.system?.id === "deltagreen") applyJournalActThemes(html?.[0] ?? html);
+  if (game.system?.id === "deltagreen") { applyJournalActThemes(html?.[0] ?? html); applyJournalSpeech(html?.[0] ?? html); }
 });
 Hooks.on("renderJournalEntrySheet", (app, html) => {
-  if (game.system?.id === "deltagreen") applyJournalChrome(app, html);
+  if (game.system?.id === "deltagreen") { applyJournalChrome(app, html); applyJournalSpeech(html?.[0] ?? html); }
 });
 Hooks.on("closeApplicationV2", (app, html) => {
   const root=html?.[0] ?? html ?? app?.element;
