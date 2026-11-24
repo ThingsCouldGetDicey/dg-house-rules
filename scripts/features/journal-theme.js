@@ -1,7 +1,7 @@
 /** Opt-in Impossible Landscapes journal theme. Unrelated journals unaffected.
  * A module-relative load also tolerates a cached Foundry package manifest.
  */
-export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.13.0",import.meta.url).href){
+export function ensureJournalTheme(doc,url=new URL("../../styles/king-in-yellow-journal.css?v=0.14.0",import.meta.url).href){
   if(!doc?.head||!doc?.createElement)return false;
   const old=[...doc.querySelectorAll('link[rel="stylesheet"]')]
     .find(link=>link.href.includes("/styles/king-in-yellow-journal.css"));
@@ -47,4 +47,57 @@ export function applyJournalActThemes(root) {
     count++;
   }
   return count;
+}
+
+/** Foundry v14 JournalEntrySheet chrome, scoped to explicitly managed pages.
+ * Use native page metadata, not names of locations or active Scenes.
+ * Observe only the owning sheet's TOC to follow multi-page scrolling.
+ */
+const chapterThemes = Object.freeze({4:"nyc",5:"bookshop",6:"boston",7:"missing-room",8:"map",9:"hotel",10:"carcosa"});
+const sheetObservers = new WeakMap();
+export function journalPageTheme(page) {
+  const meta=page?.flags?.["computer-mcp"];
+  if(meta?.source==="il-unified-handler-journal-v1") return chapterThemes[meta.chapterNumber] ?? "reference";
+  return "reference";
+}
+export function detachJournalChrome(root) {
+  const state=sheetObservers.get(root);
+  state?.observer?.disconnect();
+  sheetObservers.delete(root);
+  if(root?.classList) {
+    root.classList.remove("dg-il-app-chrome");
+    delete root.dataset.dgIlChrome;
+    root.querySelectorAll(".toc [data-dg-il-page-act]").forEach(row=>delete row.dataset.dgIlPageAct);
+  }
+}
+export function applyJournalChrome(app, html) {
+  const node=html?.[0] ?? html ?? app?.element;
+  const root=node?.closest?.(".journal-sheet.journal-entry");
+  if(!root) return false;
+  const entry=app?.entry ?? app?.document;
+  // Only this campaign's managed native JournalEntry. Never theme editors,
+  // player image popouts, other journals, dialogs or the game canvas.
+  if(entry?.id!=="lPiCcEpa0KK0rfo0" ||
+     !entry.pages?.get || !root.querySelector(".journal-entry-content")) {
+    return false;
+  }
+  const toc=root.querySelector(".journal-sidebar .toc");
+  const previous=sheetObservers.get(root);
+  previous?.observer?.disconnect();
+  root.classList.add("dg-il-app-chrome");
+  const sync=()=>{
+    if(!root.isConnected) return;
+    const active=toc?.querySelector("li[data-page-id].active");
+    const page=entry.pages.get((app.isMultiple ? active?.dataset.pageId : app.pageId) ?? active?.dataset.pageId);
+    const theme=journalPageTheme(page);
+    if(root.dataset.dgIlChrome!==theme) root.dataset.dgIlChrome=theme;
+  };
+  for(const row of toc?.querySelectorAll("li[data-page-id]") ?? []) {
+    row.dataset.dgIlPageAct=journalPageTheme(entry.pages.get(row.dataset.pageId));
+  }
+  sync();
+  const observer=toc && typeof MutationObserver!=="undefined" ? new MutationObserver(sync) : null;
+  observer?.observe(toc,{subtree:true,attributes:true,attributeFilter:["class"]});
+  sheetObservers.set(root,{observer});
+  return true;
 }

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.0 — Whole journal application skin
+
+- Decorate the native Foundry v14 journal window, title bar, table of contents, search, scrollbars, controls and reading surround using the existing eight chapter palettes and original frame assets.
+- Follow the selected native page in single- and multi-page modes. Keep unrelated journals and all journal controls untouched.
+- Scope the observer to the owning journal TOC, and disconnect it when the sheet closes.
+
+
 ## 0.13.0 — Contextual act journal themes
 
 - Fix low-contrast native Foundry links, icons, focus and hover states.
